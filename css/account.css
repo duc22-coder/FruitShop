@@ -1,0 +1,117 @@
+
+/*** Account Start ***/
+:root {
+    --primary-green: #81c408;
+    --dark-green: #6ca306;
+    --primary-orange: #ffb524;
+    --text-gray: #747d88;
+    --bg-light: #f4f6f8;
+}
+
+body {
+    font-family: 'Open Sans', sans-serif;
+    background-color: var(--bg-light);
+    background-image: url('https://www.transparenttextures.com/patterns/white-diamond.png'); /* Họa tiết nhẹ */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+}
+
+.login-container {
+    background: #fff;
+    padding: 40px;
+    border-radius: 20px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+    border: 1px solid #eee;
+}
+
+.brand-logo {
+    color: var(--primary-green);
+    font-size: 32px;
+    font-weight: 800;
+    margin-bottom: 10px;
+    display: block;
+    text-decoration: none;
+}
+
+h2 {
+    color: var(--primary-orange);
+    font-size: 24px;
+    margin-bottom: 30px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+.form-group label {
+    display: block;
+    color: var(--text-gray);
+    margin-bottom: 8px;
+    font-weight: 600;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid #ddd;
+    border-radius: 30px; /* Bo tròn theo style nút Search */
+    outline: none;
+    box-sizing: border-box;
+    transition: 0.3s;
+}
+
+.form-group input:focus {
+    border-color: var(--primary-green);
+    box-shadow: 0 0 8px rgba(129, 196, 8, 0.2);
+}
+
+.btn-login {
+    background-color: var(--primary-green);
+    color: white;
+    border: 2px solid var(--primary-green);
+    padding: 12px;
+    width: 100%;
+    border-radius: 30px;
+    font-size: 18px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.3s;
+    margin-top: 10px;
+}
+
+.btn-login:hover {
+    background-color: transparent;
+    color: var(--primary-green);
+}
+
+.extra-links {
+    margin-top: 20px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+}
+
+.extra-links a {
+    color: var(--text-gray);
+    text-decoration: none;
+}
+
+.extra-links a:hover {
+    color: var(--primary-orange);
+}
+
+.back-home {
+    margin-top: 25px;
+    display: inline-block;
+    color: var(--primary-green);
+    text-decoration: none;
+    font-weight: 600;
+}
+/*** Account End ***/
