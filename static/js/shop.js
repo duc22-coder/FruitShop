@@ -12,21 +12,20 @@ const fetchProducts = () => {
                 container.innerHTML = '<p>Không có sản phẩm nào.</p>';
                 return;
             }
-
+            console.log(products);
             // Render dữ liệu
             container.innerHTML = products.map(product => `
                 <div class="col-md-6 col-lg-6 col-xl-4">
                     <div class="rounded position-relative fruite-item border border-secondary border-bottom-0 h-100 d-flex flex-column">
                         <div class="fruite-img">
-                            <img src="${product.Image}" class="img-fluid w-100 rounded-top" alt="${product.Name}" 
-                                 onerror="this.src='img/fruite-item-1.jpg'">
+                            <img src="/static/img/products${product.ProductImage}" class="img-fluid w-100 rounded-top" alt="${product.Name}"">
                         </div>
                         <div class="text-white bg-secondary px-3 py-1 rounded position-absolute" style="top: 10px; left: 10px;">
                             ${product.Category}
                         </div>
                         <div class="p-4 border border-secondary border-top-0 rounded-bottom flex-grow-1 d-flex flex-column">
-                            <h4>${product.Name}</h4>
-                            <p class="flex-grow-1">${product.Description || 'Trái cây tươi ngon nhập khẩu mỗi ngày...'}</p>
+                            <h4>${product.ProductName}</h4>
+                            <p class="flex-grow-1">${product.Descript || 'Trái cây tươi ngon nhập khẩu mỗi ngày...'}</p>
                             <div class="d-flex justify-content-between flex-lg-wrap">
                                 <p class="text-dark fs-5 fw-bold mb-0">${formatVND(product.Price)}</p>
                                 <a href="javascript:void(0)" onclick="addToCart(${product.ProductID})" 

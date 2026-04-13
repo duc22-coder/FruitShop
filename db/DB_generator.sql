@@ -7,25 +7,25 @@ GO
 CREATE TABLE tblAccount
 (
     AccountID INT PRIMARY KEY,
-    Name NVARCHAR(255),
-    Password VARCHAR(255),
-    Address NVARCHAR(255),
+    UserName NVARCHAR(255),
+    Passwd VARCHAR(255),
+    UserAddress NVARCHAR(255),
     Phone VARCHAR(20),
-    Role VARCHAR(50)
+    AccountRole VARCHAR(50)
 );
 
 -- 2. Tạo bảng tblProduct
 CREATE TABLE tblProduct
 (
     ProductID INT PRIMARY KEY,
-    Name NVARCHAR(255),
+    ProductName NVARCHAR(255),
     Category NVARCHAR(100),
     Price DECIMAL(18, 2),
     Stock INT,
     DueDate DATE,
-    Description NVARCHAR(MAX),
+    Descript NVARCHAR(MAX),
     Discount INT,
-    Image NVARCHAR(500)
+    ProductImage NVARCHAR(500)
 );
 
 -- 3. Tạo bảng tblInvoice
@@ -34,7 +34,7 @@ CREATE TABLE tblInvoice
     InvoiceID INT PRIMARY KEY,
     AccountID INT,
     TotalPayment DECIMAL(18, 2),
-    State NVARCHAR(50),
+    InvoiceState NVARCHAR(50),
     CONSTRAINT FK_Invoice_Account FOREIGN KEY (AccountID) REFERENCES tblAccount(AccountID)
 );
 
@@ -44,7 +44,6 @@ CREATE TABLE tblPayment
     PaymentID INT PRIMARY KEY,
     InvoiceID INT,
     Paying_method NVARCHAR(100),
-    -- Sửa sang NVARCHAR
     Paying_date DATE,
     CONSTRAINT FK_Payment_Invoice FOREIGN KEY (InvoiceID) REFERENCES tblInvoice(InvoiceID)
 );
@@ -55,7 +54,7 @@ CREATE TABLE tblOrder
     OrderID INT PRIMARY KEY,
     DeliveryMethod NVARCHAR(100),
     InvoiceID INT,
-    Address NVARCHAR(255),
+    OrderAddress NVARCHAR(255),
     Phone VARCHAR(20),
     CONSTRAINT FK_Order_Invoice FOREIGN KEY (InvoiceID) REFERENCES tblInvoice(InvoiceID)
 );
