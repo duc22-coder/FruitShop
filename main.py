@@ -1,5 +1,6 @@
+import secrets
 import pyodbc
-import flask
+import flask 
 from flask_cors import CORS
 
 app = flask.Flask(__name__)
@@ -9,23 +10,39 @@ cn_str = 'DRIVER={ODBC Driver 17 for SQL Server};SERVER=DATPHUNG;DATABASE=Fruita
 conn = pyodbc.connect(cn_str)
 
 # account management
+@app.route("/login")
+def login_page():
+    return flask.render_template("login.html")
+
+@app.route("/")
+def home():
+    return flask.render_template("index.html")
+
 @app.route("/login", methods=["POST"])
 def login():
-    username = flask.request.json.get("username")
-    password = flask.request.json.get("password")
+    data = flask.request.get_json(force=True)
+
+    username = data.get("username")
+    password = data.get("password")
 
     cursor = conn.cursor()
-    cursor.execute("select * from tblAccount " \
-    "where AccountID = ? and Password = ? ", (username, password))
-    
-    columns = [column[0] for column in cursor.description]
-    results = []
+    cursor.execute(
+        "select * from tblAccount where AccountID = ? and Password = ?",
+        (username, password)
+    )
 
-    for row in cursor.fetchall():
-            results.append(dict(zip(columns, row)))
+    row = cursor.fetchone()
 
-    return {"error": "Sai tài khoản"}
+    if not row:
+        return flask.jsonify({"error": "Sai tài khoản"}), 401
 
+    token = secrets.token_hex(32)
+
+    return flask.jsonify({
+        "message": "login success",
+        "token": token,
+        "user": row[0]
+    })
 
 @app.route('/cart/getCartByAccount/', methods = ['GET']) 
 def deleteKH():     
