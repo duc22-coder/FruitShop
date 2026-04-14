@@ -9,7 +9,7 @@ const fetchProducts = () => {
                 <div class="col-md-6 col-lg-6 col-xl-4">
                     <div class="rounded position-relative fruite-item border border-secondary h-100 d-flex flex-column">
                         <div class="fruite-img">
-                            <img src="${product.ProductImage}" class="img-fluid w-100 rounded-top" alt="${product.ProductName}">
+                            <img src="/static/img/products/${product.ProductImage}" class="img-fluid w-100 rounded-top" alt="${product.ProductName}">
                         </div>
                         <div class="p-4 flex-grow-1 d-flex flex-column">
                             <h4>${product.ProductName}</h4>

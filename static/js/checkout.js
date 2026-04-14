@@ -30,17 +30,12 @@ async function loadCheckoutData() {
             const itemTotal = item.Price * item.Quantity;
             subtotal += itemTotal;
 
-            // Fix đường dẫn ảnh cho Flask
-            let imgPath = item.ProductImage;
-            if (!imgPath.startsWith('/static')) {
-                imgPath = imgPath.startsWith('/') ? `/static${imgPath}` : `/static/${imgPath}`;
-            }
 
             return `
                 <tr>
                     <th scope="row">
                         <div class="d-flex align-items-center mt-2">
-                            <img src="${imgPath}" class="img-fluid rounded-circle" style="width: 60px; height: 60px; object-fit: cover;">
+                            <img src="/static/img/products/${item.ProductImage}" class="img-fluid rounded-circle" style="width: 80px; height: 80px; object-fit: cover;">
                         </div>
                     </th>
                     <td class="py-5">${item.ProductName}</td>

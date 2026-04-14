@@ -29,10 +29,10 @@ async function loadCart() {
                     <tr>
                         <th scope="row">
                             <div class="d-flex align-items-center">
-                                <img src="${item.ProductImage}" 
-                                     class="img-fluid rounded-circle border" 
-                                     style="width: 120px; height: 120px; object-fit: cover;" 
-                                     alt="${item.ProductName}">
+                                <img src="/static/img/products/${item.ProductImage}" 
+                                    class="img-fluid rounded-circle border" 
+                                    style="width: 120px; height: 120px; object-fit: cover;" 
+                                    alt="${item.ProductName}">
                             </div>
                         </th>
                         <td><p class="mb-0 mt-4">${item.ProductName}</p></td>

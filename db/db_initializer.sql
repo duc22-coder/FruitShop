@@ -1,3 +1,4 @@
+--  Đã sửa đường dẫn vào img vd: apple.jpg
 USE Fruitables;
 GO
 
@@ -15,11 +16,11 @@ VALUES
 INSERT INTO tblProduct
     (ProductID, ProductName, Category, Price, Stock, DueDate, Descript, Discount, ProductImage)
 VALUES
-    (1, N'Táo Mỹ', N'Trái cây', 50000, 100, '2026-12-31', N'Táo đỏ nhập khẩu, giòn và ngọt', 10, N'/img/products/apple.jpg'),
-    (2, N'Chuối', N'Trái cây', 20000, 200, '2026-10-10', N'Chuối chín tự nhiên, không hóa chất', 5, N'/img/products/banana.jpg'),
-    (3, N'Cam', N'Trái cây', 30000, 150, '2026-11-15', N'Cam sành mọng nước, nhiều vitamin C', 0, N'/img/products/orange.jpg'),
-    (4, N'Cà rốt', N'Rau củ', 25000, 120, '2026-09-20', N'Cà rốt Đà Lạt tươi sạch mỗi ngày', 15, N'/img/products/carrot.jpg'),
-    (5, N'Bông cải', N'Rau củ', 40000, 80, '2026-08-30', N'Bông cải xanh giàu chất xơ', 20, N'/img/products/broccoli.jpg');
+    (1, N'Táo Mỹ', N'Trái cây', 50000, 100, '2026-12-31', N'Táo đỏ nhập khẩu, giòn và ngọt', 10, N'apple.jpg'),
+    (2, N'Chuối', N'Trái cây', 20000, 200, '2026-10-10', N'Chuối chín tự nhiên, không hóa chất', 5, N'banana.jpg'),
+    (3, N'Cam', N'Trái cây', 30000, 150, '2026-11-15', N'Cam sành mọng nước, nhiều vitamin C', 0, N'orange.jpg'),
+    (4, N'Cà rốt', N'Rau củ', 25000, 120, '2026-09-20', N'Cà rốt Đà Lạt tươi sạch mỗi ngày', 15, N'carrot.jpg'),
+    (5, N'Bông cải', N'Rau củ', 40000, 80, '2026-08-30', N'Bông cải xanh giàu chất xơ', 20, N'broccoli.jpg');
 
 -- 3. Chèn dữ liệu vào tblInvoice
 INSERT INTO tblInvoice
@@ -70,24 +71,3 @@ VALUES
     (3, 3, 1),
     (4, 4, 5),
     (5, 5, 2);
-
-select *
-from tblAccount
-select *
-from tblCart
-select *
-from tblInvoice
-select *
-from tblInvoiceDetail
-select *
-from tblOrder
-select *
-from tblPayment
-select *
-from tblProduct
-
-update tblProduct set ProductImage = '/static/img/products/apple.jpg' where ProductID =1;
-update tblProduct set ProductImage = '/static/img/products/banana.jpg' where ProductID =2;
-update tblProduct set ProductImage = '/static/img/products/orange.jpg' where ProductID =3;
-update tblProduct set ProductImage = '/static/img/products/carrot.jpg' where ProductID =4;
-update tblProduct set ProductImage = '/static/img/products/broccoli.jpg' where ProductID =5;
