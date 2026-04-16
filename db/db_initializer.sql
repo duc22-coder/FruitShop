@@ -31,11 +31,11 @@ VALUES
 INSERT INTO tblProduct
     (ProductName, Category, Price, Stock, DueDate, Descript, Discount, ProductImage)
 VALUES
-    (N'Táo Mỹ', N'Trái cây', 50000, 100, '2026-12-31', N'Táo đỏ nhập khẩu, giòn và ngọt', 10, N'/img/products/apple.jpg'),
-    (N'Chuối', N'Trái cây', 20000, 200, '2026-10-10', N'Chuối chín tự nhiên, không hóa chất', 5, N'/img/products/banana.jpg'),
-    (N'Cam', N'Trái cây', 30000, 150, '2026-11-15', N'Cam sành mọng nước, nhiều vitamin C', 0, N'/img/products/orange.jpg'),
-    (N'Cà rốt', N'Rau củ', 25000, 120, '2026-09-20', N'Cà rốt Đà Lạt tươi sạch mỗi ngày', 15, N'/img/products/carrot.jpg'),
-    (N'Bông cải', N'Rau củ', 40000, 80, '2026-08-30', N'Bông cải xanh giàu chất xơ', 20, N'/img/products/broccoli.jpg');
+    (N'Táo Mỹ', N'Trái cây', 50000, 100, '2026-12-31', N'Táo đỏ nhập khẩu, giòn và ngọt', 10, N'apple.jpg'),
+    (N'Chuối', N'Trái cây', 20000, 200, '2026-10-10', N'Chuối chín tự nhiên, không hóa chất', 5, N'banana.jpg'),
+    (N'Cam', N'Trái cây', 30000, 150, '2026-11-15', N'Cam sành mọng nước, nhiều vitamin C', 0, N'orange.jpg'),
+    (N'Cà rốt', N'Rau củ', 25000, 120, '2026-09-20', N'Cà rốt Đà Lạt tươi sạch mỗi ngày', 15, N'carrot.jpg'),
+    (N'Bông cải', N'Rau củ', 40000, 80, '2026-08-30', N'Bông cải xanh giàu chất xơ', 20, N'broccoli.jpg');
 
 
 -- 3. tblInvoice
