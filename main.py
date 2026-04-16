@@ -8,7 +8,7 @@ from flask_cors import CORS
 app = Flask(__name__)
 CORS(app, supports_credentials=True)
 
-cn_str = 'DRIVER={ODBC Driver 17 for SQL Server};SERVER=DATPHUNG;DATABASE=Fruitables;Trusted_Connection=yes;MARS_Connection=yes'
+cn_str = 'DRIVER={ODBC Driver 17 for SQL Server};SERVER=LAPTOP-C8E5HODE;DATABASE=Fruitables;Trusted_Connection=yes'
 conn = pyodbc.connect(cn_str, autocommit=True)
 tokens = {}  # Lưu trữ token và AccountID tương ứng
 
@@ -169,6 +169,27 @@ def get_all_products():
             "Price": float(row[3]), "Stock": row[4], "Descript": row[5],
             "Discount": row[6], "ProductImage": row[7]
         })
+    return jsonify(result)
+# 1. API Tìm kiếm sản phẩm theo tên
+@app.route("/product/search", methods=["GET"])
+def search_products():
+    keyword = request.args.get('keyword', '')
+    with conn.cursor() as cursor:
+        # Dùng LIKE để tìm từ khóa có chứa trong ProductName
+        cursor.execute("SELECT ProductID, ProductName, Category, Price, Stock, Descript, Discount, ProductImage FROM tblProduct WHERE ProductName LIKE ?", ('%' + keyword + '%',))
+        rows = cursor.fetchall()
+        
+    result = [{"ProductID": r[0], "ProductName": r[1], "Category": r[2], "Price": float(r[3]), "Stock": r[4], "Descript": r[5], "Discount": r[6], "ProductImage": r[7]} for r in rows]
+    return jsonify(result)
+
+# 2. API Lọc sản phẩm theo danh mục (Category)
+@app.route("/product/category/<category_name>", methods=["GET"])
+def get_products_by_category(category_name):
+    with conn.cursor() as cursor:
+        cursor.execute("SELECT ProductID, ProductName, Category, Price, Stock, Descript, Discount, ProductImage FROM tblProduct WHERE Category = ?", (category_name,))
+        rows = cursor.fetchall()
+        
+    result = [{"ProductID": r[0], "ProductName": r[1], "Category": r[2], "Price": float(r[3]), "Stock": r[4], "Descript": r[5], "Discount": r[6], "ProductImage": r[7]} for r in rows]
     return jsonify(result)
 
 @app.route('/cart/add', methods=['POST'])
