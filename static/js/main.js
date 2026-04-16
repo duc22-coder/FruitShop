@@ -99,27 +99,98 @@
 const formatVND = (price) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
 const SHIP_FEE = 30000;
 
-document.addEventListener('DOMContentLoaded', function () {
-    const userName = localStorage.getItem("userName");
-    const token = localStorage.getItem("token");
-    const userInfo = document.getElementById("user-info");
-    const userLink = document.querySelector("a.my-auto i.fa-user")?.parentElement;
-
-    if (token && userName) {
-        if (userInfo) {
-            userInfo.innerHTML = `Xin chào, <b>${userName}</b> | <a href="javascript:void(0)" onclick="logout()" class="text-danger">Thoát</a>`;
-        }
-        if (userLink) {
-            userLink.href = "javascript:void(0)";
-            userLink.innerHTML = `<i class="fas fa-user fa-2x"></i> <span class="d-none d-md-inline ms-1 small text-dark">${userName}</span>`;
-        }
-    }
-});
-
 function logout() {
     if (confirm("Bạn có chắc chắn muốn đăng xuất?")) {
         localStorage.clear();
         alert("Đã đăng xuất!");
-        window.location.href = "http://127.0.0.1:5500/templates/index.html";
+        window.location.href = "http://127.0.0.1:5500/templates/login.html";
     }
 }
+
+
+function validateLogin(){
+    var token = localStorage.getItem("token");
+
+    if(!token) {
+        window.location.href = "/templates/login.html";
+    }
+    else
+    {
+        $.ajax({
+            url: "http://127.0.0.1:5000/account/getInfor",
+            method: "GET",
+            headers: {
+                "Authorization": "Bearer " + token
+            },
+            success: function(res){
+                $("#login-btn").html(
+                `<i class="fas fa-user fa-2x"></i>
+                <span class="d-none d-md-inline ms-1 small text-dark">
+                    ${res.name}
+                </span>`
+                );
+            },
+            error: function(e){
+                alert("get info failed");
+                console.log(e);
+            }
+        });
+    }
+}
+
+function updateCartQuantityIcon(){
+    var token = localStorage.getItem("token");
+
+    $.ajax({
+        url: "http://127.0.0.1:5000/cart/getProductAmount",
+        method: "GET",
+        headers: {
+            "Authorization": "Bearer " + token
+        },
+        contentType: "application/json",
+        success: function(res){
+            $('#cart-amount').html(res.amount);
+        },
+        error: function(e){
+            $('#cart-amount').html(-1);
+            alert("update cart amount icon failed");
+        }
+    });
+}
+
+
+function logout(token){
+    $.ajax({
+        url: "http://127.0.0.1:5000/logout",
+        method: "POST",
+        headers: {
+            "Authorization": "Bearer " + token
+        },
+        contentType: "application/json",
+        success: function(res){
+            alert("log out success", res.message);
+            localStorage.removeItem("token");
+            window.location.href = "/templates/login.html";
+        },
+        error: function(e){
+            alert("logout failed");
+        }
+    });
+}
+
+$(document).on("click", ".btn-login", function(){
+    const token = localStorage.getItem("token");
+    if (token != null){
+        Logout(token);
+    }
+    else{
+        window.location.href = "/templates/login.html";
+    }
+});
+
+// 3. Khởi tạo
+$(document).ready(function () {
+    // loadProducts();
+    validateLogin();
+    updateCartQuantityIcon();
+});

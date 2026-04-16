@@ -103,3 +103,12 @@ CREATE TABLE tblCart
     REFERENCES tblProduct(ProductID)
     ON DELETE CASCADE
 );
+
+CREATE TABLE tblToken
+(
+	token NVARCHAR(255) PRIMARY KEY,
+	AccountID int,
+	FOREIGN KEY (AccountID) 
+    REFERENCES tblAccount(AccountID)
+	ON DELETE CASCADE
+)

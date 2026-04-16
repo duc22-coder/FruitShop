@@ -29,6 +29,7 @@ VALUES
     (N'Cà rốt', N'Rau củ', 25000, 120, '2026-09-20', N'Cà rốt Đà Lạt tươi sạch mỗi ngày', 15, N'carrot.jpg'),
     (N'Bông cải', N'Rau củ', 40000, 80, '2026-08-30', N'Bông cải xanh giàu chất xơ', 20, N'broccoli.jpg');
 
+
 -- 3. tblInvoice
 INSERT INTO tblInvoice
     (AccountID, TotalPayment, InvoiceState)

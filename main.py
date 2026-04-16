@@ -1,15 +1,40 @@
 from ast import keyword
 import secrets
 import pyodbc
+from functools import wraps
 from flask import Flask, render_template, request, jsonify
 from flask_cors import CORS
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, supports_credentials=True)
 
-cn_str = 'DRIVER={ODBC Driver 17 for SQL Server};SERVER=ADMIN-PC;DATABASE=Fruitables;Trusted_Connection=yes'
+cn_str = 'DRIVER={ODBC Driver 17 for SQL Server};SERVER=DATPHUNG;DATABASE=Fruitables;Trusted_Connection=yes;MARS_Connection=yes'
 conn = pyodbc.connect(cn_str, autocommit=True)
 tokens = {}  # Lưu trữ token và AccountID tương ứng
+
+def token_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        
+        auth = request.headers.get("Authorization")
+        if not auth:
+            return jsonify({"error":"Missing token"}),401
+
+        parts = auth.split(" ")
+        if len(parts) != 2:
+            return jsonify({"error":"Invalid token format"}),401
+
+        token = parts[1]
+
+        if token not in tokens:
+            return jsonify({"error":"Invalid token"}),401
+
+        request.account_id = tokens[token]
+
+        return f(*args, **kwargs)
+
+    return decorated
+
 @app.route("/register", methods=["POST"])
 def register_api():
     cursor = None
@@ -57,6 +82,7 @@ def register_api():
         return jsonify({"error": str(e)}), 500
     finally:
         if cursor: cursor.close() 
+        
 # API Đăng nhập
 @app.route("/login", methods=["POST"])
 def login_api(): 
@@ -75,12 +101,60 @@ def login_api():
         return jsonify({"error": "Sai tài khoản hoặc mật khẩu"}), 401
 
     token = secrets.token_hex(32)
+    tokens[token] = row[0]
     return jsonify({
         "message": "login success",
         "token": token,
         "accountID": row[0],
         "user": row[1]
     })
+
+# đăng xuất
+@app.route("/logout", methods=["POST"])
+@token_required
+def logout():
+
+    auth = request.headers.get("Authorization")
+    token = auth.split(" ")[1]
+
+    cursor = conn.cursor()
+    cursor.execute(
+        "DELETE FROM tblToken WHERE Token=?",
+        (token,)
+    )
+
+    conn.commit()
+    cursor.close()
+
+    return jsonify({"message": "Logged out"})
+
+@app.route("/account/getInfor", methods=["GET"])
+@token_required
+def get_info():
+    id = request.account_id
+
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT AccountID, UserName, Passwd, UserAddress, Phone, AccountRole 
+        FROM tblAccount WHERE AccountID = ?
+        """, (id,)
+    )
+
+    row = cursor.fetchone()
+    
+    if row:
+        return jsonify({
+            "id": row[0],
+            "name": row[1],
+            "password": row[2],
+            "address": row[3],
+            "phone": row[4],
+            "role": row[5]
+        })
+    
+    conn.commit()
+    cursor.close()
+
 @app.route("/product/getAllProduct", methods=["GET"])
 def get_all_products():
     # Sử dụng 'with' để tự động đóng cursor khi lấy xong dữ liệu
@@ -114,7 +188,6 @@ def add_to_cart():
     cursor.execute(sql, (acc_id, prod_id, acc_id, prod_id, acc_id, prod_id))
     conn.commit()
     return jsonify({"message": "Success"})
-    
 
 @app.route("/cart/getByUserId/<int:acc_id>", methods=["GET"])
 def get_cart_items(acc_id):
@@ -130,6 +203,21 @@ def get_cart_items(acc_id):
     cart = [{"ProductID": r[0], "ProductName": r[1], "Price": float(r[2]), "ProductImage": r[3], "Quantity": r[4]} for r in rows]
     return jsonify(cart)
 
+@app.route("/cart/getProductAmount", methods=["GET"])
+@token_required
+def get_amount_by_id():
+
+    id = request.account_id
+    cursor = conn.cursor()
+    cursor.execute("SELECT SUM(Quantity) FROM tblCart WHERE AccountID = ?", (id,))
+    row = cursor.fetchone()
+
+    amount = row[0] if row[0] is not None else 0
+
+    cursor.close()
+
+    return jsonify({"amount": amount}), 200
+
 @app.route("/cart/remove", methods=["POST"])
 def remove_cart():
     data = request.json
@@ -138,6 +226,7 @@ def remove_cart():
                   (data.get('account_id'), data.get('product_id')))
     conn.commit()
     return jsonify({"message": "Deleted"})
+
 # # 4. API Cập nhật số lượng (Dùng cho nút + / - trong cart.js)
 @app.route('/cart/update', methods=['POST'])
 def update_cart_quantity():
