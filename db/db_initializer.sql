@@ -1,13 +1,5 @@
 USE Fruitables;
 GO
-
-DELETE FROM tblCart;
-DELETE FROM tblInvoiceDetail;
-DELETE FROM tblPayment;
-DELETE FROM tblOrder;
-DELETE FROM tblInvoice;
-DELETE FROM tblProduct;
-DELETE FROM tblAccount;
 DBCC CHECKIDENT ('tblAccount', RESEED, 0);
 DBCC CHECKIDENT ('tblProduct', RESEED, 0);
 DBCC CHECKIDENT ('tblInvoice', RESEED, 0);
@@ -48,7 +40,6 @@ VALUES
     (4, 300000, N'Đang giao hàng'),
     (5, 250000, N'Đã thanh toán');
 
-
 -- 4. tblPayment (bỏ PaymentID)
 INSERT INTO tblPayment
     (InvoiceID, Paying_method, Paying_date)
@@ -69,7 +60,6 @@ VALUES
     (N'Giao hỏa tốc', 3, N'Đà Nẵng', '0900000003'),
     (N'Giao tiêu chuẩn', 4, N'TP. Hồ Chí Minh', '0900000004'),
     (N'Giao nhanh', 5, N'Cần Thơ', '0900000005');
-
 
 -- 6. tblInvoiceDetail (bỏ InvoiceDetailID)
 INSERT INTO tblInvoiceDetail
@@ -93,10 +83,3 @@ VALUES
     (5, 5, 2);
 
 
-select * from tblAccount
-select * from tblCart
-select * from tblInvoice
-select * from tblInvoiceDetail
-select * from tblOrder
-select * from tblPayment
-select * from tblProduct
