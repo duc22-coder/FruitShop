@@ -1,69 +1,64 @@
 const API_BASE = "http://127.0.0.1:5000";
+
+
+// --- RENDER GIAO DIỆN ---
 const renderProducts = (products) => {
     const container = document.getElementById('product-container');
     if (!container) return;
 
     if (!products || products.length === 0) {
-        container.innerHTML = `<p class="text-center">Không tìm thấy sản phẩm</p>`;
+        container.innerHTML = `<div class="col-12 text-center py-5"><h4>Không tìm thấy sản phẩm</h4></div>`;
         return;
     }
 
     container.innerHTML = products.map(product => `
-        <div class="col-md-6 col-lg-6 col-xl-4">
-            <div class="rounded position-relative fruite-item border border-secondary h-100 d-flex flex-column">
-                
+        <div class="col-md-6 col-lg-6 col-xl-4 mb-4">
+            <div class="rounded position-relative fruite-item border border-secondary h-100 d-flex flex-column shadow-sm">
                 <div class="fruite-img">
-                    <img src="/static/img/products/${product.ProductImage}" 
+                    <img src="/static/img/products/${product.ProductImage || 'default.jpg'}" 
                          class="img-fluid w-100 rounded-top" 
+                         style="height: 250px; object-fit: cover;"
                          alt="${product.ProductName}">
                 </div>
-
                 <div class="p-4 flex-grow-1 d-flex flex-column">
-                    <h4>${product.ProductName}</h4>
-
-                    <p class="flex-grow-1 text-truncate">
-                        ${product.Descript || 'Trái cây tươi ngon...'}
+                    <h4 class="text-primary">${product.ProductName}</h4>
+                    <p class="flex-grow-1 text-muted text-truncate" title="${product.Descript}">
+                        ${product.Descript || 'Trái cây sạch, tươi ngon mỗi ngày...'}
                     </p>
-
-                    <div class="d-flex justify-content-between flex-lg-wrap">
-                        <p class="text-dark fs-5 fw-bold mb-0">
-                            ${formatVND(product.Price)}
-                        </p>
-
+                    <div class="d-flex justify-content-between align-items-center mt-auto">
+                        <p class="text-dark fs-5 fw-bold mb-0">${formatVND(product.Price)}</p>
                         <button onclick="addToCart(${product.ProductID})"
-                            class="btn border border-secondary rounded-pill px-3 text-primary">
+                                class="btn border border-secondary rounded-pill px-3 text-primary">
                             <i class="fa fa-shopping-bag me-2"></i> Add
                         </button>
                     </div>
                 </div>
-
             </div>
         </div>
     `).join('');
 };
 
-// ===== FETCH ALL =====
-const fetchProducts = () => {
-    fetch(`${API_BASE}/product/getAllProduct`)
+// --- LOGIC TẢI DỮ LIỆU ---
+const loadProducts = (keyword = "") => {
+    const url = keyword
+        ? `${API_BASE}/product/search?keyword=${encodeURIComponent(keyword)}`
+        : `${API_BASE}/product/getAllProduct`;
+
+    fetch(url)
         .then(res => res.json())
-        .then(renderProducts)
-        .catch(() => alert("Lỗi load sản phẩm"));
+        .then(data => renderProducts(data))
+        .catch(err => {
+            console.error("Lỗi API:", err);
+            // Hiện thông báo lỗi nhẹ nhàng thay vì alert liên tục
+            document.getElementById('product-container').innerHTML = `<p class="text-center text-danger">Lỗi kết nối máy chủ!</p>`;
+        });
 };
 
-// ===== SEARCH =====
-const searchProducts = (keyword) => {
-    fetch(`${API_BASE}/product/search?keyword=${encodeURIComponent(keyword)}`)
-        .then(res => res.json())
-        .then(renderProducts)
-        .catch(() => alert("Lỗi search"));
-};
-
-// ===== ADD TO CART =====
+// --- THÊM GIỎ HÀNG ---
 function addToCart(productId) {
     const userId = localStorage.getItem("accountID");
-
     if (!userId) {
-        alert("Bạn cần đăng nhập!");
+        alert("Vui lòng đăng nhập!");
         window.location.href = "login.html";
         return;
     }
@@ -71,46 +66,43 @@ function addToCart(productId) {
     fetch(`${API_BASE}/cart/add`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            account_id: userId,
-            product_id: productId
-        })
+        body: JSON.stringify({ account_id: userId, product_id: productId })
     })
-        .then(res => res.json())
-        .then(() => alert("Đã thêm vào giỏ hàng!"))
-        .catch(() => alert("Lỗi server!"));
+        .then(res => res.ok ? res.json() : Promise.reject())
+        .then(() => alert("✅ Đã thêm vào giỏ hàng!"))
+        .catch(() => alert("❌ Không thể thêm vào giỏ hàng!"));
 }
 
-// ===== INIT =====
+// --- KHỞI TẠO VÀ SỰ KIỆN ---
 document.addEventListener('DOMContentLoaded', () => {
-    fetchProducts();
-
     const input = document.getElementById('search-input');
     const btn = document.getElementById('search-btn');
 
-    if (!input || !btn) return;
+    // 1. Kiểm tra URL (khi chuyển trang từ Index sang Shop)
+    const urlParams = new URLSearchParams(window.location.search);
+    const keywordFromUrl = urlParams.get('keyword') || "";
 
-    // Click search
-    btn.addEventListener('click', () => {
-        const keyword = input.value.trim();
-        keyword ? searchProducts(keyword) : fetchProducts();
-    });
+    if (input && keywordFromUrl) {
+        input.value = keywordFromUrl;
+    }
 
-    // Enter search
-    input.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            const keyword = input.value.trim();
-            keyword ? searchProducts(keyword) : fetchProducts();
-        }
-    });
+    // 2. Gọi dữ liệu lần đầu
+    loadProducts(keywordFromUrl);
 
-    // Realtime search (debounce)
-    let timeout;
-    input.addEventListener('input', () => {
-        clearTimeout(timeout);
-        timeout = setTimeout(() => {
-            const keyword = input.value.trim();
-            keyword ? searchProducts(keyword) : fetchProducts();
-        }, 300);
-    });
+    // 3. Xử lý tìm kiếm tại trang
+    if (input && btn) {
+        const doSearch = () => loadProducts(input.value.trim());
+
+        btn.addEventListener('click', doSearch);
+        input.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') doSearch();
+        });
+
+        // Tìm kiếm thời gian thực (Debounce)
+        let timer;
+        input.addEventListener('input', () => {
+            clearTimeout(timer);
+            timer = setTimeout(doSearch, 400);
+        });
+    }
 });
