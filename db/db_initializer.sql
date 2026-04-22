@@ -6,7 +6,7 @@ DBCC CHECKIDENT ('tblInvoice', RESEED, 0);
 DBCC CHECKIDENT ('tblPayment', RESEED, 0);
 DBCC CHECKIDENT ('tblOrder', RESEED, 0);
 DBCC CHECKIDENT ('tblInvoiceDetail', RESEED, 0);
-
+delete from tblAccount
 -- 1. tblAccount (bỏ AccountID)
 INSERT INTO tblAccount
     (UserName, Passwd, UserAddress, Phone, AccountRole)
@@ -18,7 +18,8 @@ VALUES
     (N'Nguyễn Duy Minh', '123456', N'Cần Thơ', '0900000005', 'USER'),
     (N'admin', '123456', 'Kim Lan', '0859376293', 'USER');
 
-
+select *
+from tblAccount
 -- 2. tblProduct (bỏ ProductID)
 INSERT INTO tblProduct
     (ProductName, Category, Price, Stock, DueDate, Descript, Discount, ProductImage)
@@ -40,7 +41,6 @@ VALUES
 INSERT INTO tblInvoice
     (AccountID, TotalPayment, InvoiceState)
 VALUES
-    (0, 100000, N'Đã thanh toán'),
     (1, 100000, N'Đã thanh toán'),
     (2, 200000, N'Chờ xử lý'),
     (3, 150000, N'Đã thanh toán'),
@@ -51,7 +51,6 @@ VALUES
 INSERT INTO tblPayment
     (InvoiceID, Paying_method, Paying_date)
 VALUES
-    (0, N'Chuyển khoản', '2026-04-05'),
     (1, N'Tiền mặt (COD)', '2026-04-01'),
     (2, N'Chuyển khoản', '2026-04-02'),
     (3, N'Ví MoMo', '2026-04-03'),
@@ -74,7 +73,6 @@ VALUES
 INSERT INTO tblInvoiceDetail
     (InvoiceID, ProductID, Quantity)
 VALUES
-    (0, 0, 2),
     (1, 1, 2),
     (2, 2, 5),
     (3, 3, 3),
