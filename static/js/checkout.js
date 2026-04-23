@@ -61,12 +61,58 @@ function calculateFinalTotal() {
     const shippingRadio = document.querySelector('input[name="shipping"]:checked');
     const shippingFee = shippingRadio ? parseInt(shippingRadio.value) : 0;
 
+    let discountAmount = 0;
+    const couponData = JSON.parse(localStorage.getItem('appliedCoupon'));
+    
+    if (couponData && subtotal > 0) {
+        discountAmount = subtotal * (couponData.percent / 100);
+        if (discountAmount > couponData.max) {
+            discountAmount = couponData.max;
+        }
+    }
+
     const finalTotalEl = document.getElementById('final-total');
     if (finalTotalEl) {
-        finalTotalEl.innerText = formatVND(subtotal + shippingFee);
+        // Tổng cuối = Tiền hàng - Tiền giảm + Phí ship
+        let finalMoney = subtotal - discountAmount + shippingFee;
+        if(finalMoney < 0) finalMoney = 0; // Đề phòng lỗi âm tiền
+        finalTotalEl.innerText = formatVND(finalMoney);
     }
 }
+async function autofillUserInfo() {
+    const token = localStorage.getItem("token");
+    
+    // Nếu không có token (chưa đăng nhập) thì thôi, không fill
+    if (!token) return;
 
+    try {
+        const res = await fetch("http://127.0.0.1:5000/account/getInfor", {
+            method: "GET",
+            headers: {
+                "Authorization": `Bearer ${token}` // Gửi token lên để Backend xác thực
+            }
+        });
+
+        if (res.ok) {
+            const user = await res.json();
+
+            // Điền dữ liệu vào các ô đã đặt ID ở Bước 1
+            if (document.getElementById('billing-name')) {
+                document.getElementById('billing-name').value = user.name || "";
+            }
+            if (document.getElementById('billing-address')) {
+                document.getElementById('billing-address').value = user.address || "";
+            }
+            if (document.getElementById('billing-phone')) {
+                document.getElementById('billing-phone').value = user.phone || "";
+            }
+            
+            console.log("Đã tự động điền thông tin mặc định!");
+        }
+    } catch (err) {
+        console.error("Lỗi khi lấy thông tin người dùng:", err);
+    }
+}
 // 3. Lắng nghe sự kiện thay đổi phí ship khi người dùng click chọn
 document.addEventListener('change', function (e) {
     if (e.target && e.target.name === 'shipping') {
@@ -75,7 +121,13 @@ document.addEventListener('change', function (e) {
 });
 
 // Chạy khi trang web tải xong
-document.addEventListener('DOMContentLoaded', loadCheckoutData);
+document.addEventListener('DOMContentLoaded', () => {
+    // 1. Lấy dữ liệu giỏ hàng để hiển thị (Code cũ của bạn)
+    loadCheckoutData();
+    
+    // 2. Tự động điền thông tin cá nhân (Code mới thêm)
+    autofillUserInfo();
+});
 function generateQRCode() {
     // Lấy số tiền từ giao diện (đã được render ở bước trên)
     const finalTotalText = document.getElementById('final-total').innerText;

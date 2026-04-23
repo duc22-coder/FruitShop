@@ -4,6 +4,8 @@ import pyodbc
 from functools import wraps
 from flask import Flask, render_template, request, jsonify
 from flask_cors import CORS
+from datetime import date
+from flask_mail import Mail, Message
 
 app = Flask(__name__)
 CORS(app, supports_credentials=True)
@@ -170,53 +172,6 @@ def get_all_products():
             "Discount": row[6], "ProductImage": row[7]
         })
     return jsonify(result)
-# 1. API Tìm kiếm sản phẩm theo tên
-@app.route("/product/search", methods=["GET"])
-def search_products():
-    keyword = request.args.get('keyword', '')
-    with conn.cursor() as cursor:
-        # Dùng LIKE để tìm từ khóa có chứa trong ProductName
-        cursor.execute("SELECT ProductID, ProductName, Category, Price, Stock, Descript, Discount, ProductImage FROM tblProduct WHERE ProductName LIKE ?", ('%' + keyword + '%',))
-        rows = cursor.fetchall()
-        
-    result = [{"ProductID": r[0], "ProductName": r[1], "Category": r[2], "Price": float(r[3]), "Stock": r[4], "Descript": r[5], "Discount": r[6], "ProductImage": r[7]} for r in rows]
-    return jsonify(result)
-
-# 2. API Lọc sản phẩm theo danh mục (Category)
-@app.route("/product/category/<category_name>", methods=["GET"])
-def get_products_by_category(category_name):
-    with conn.cursor() as cursor:
-        cursor.execute("SELECT ProductID, ProductName, Category, Price, Stock, Descript, Discount, ProductImage FROM tblProduct WHERE Category = ?", (category_name,))
-        rows = cursor.fetchall()
-        
-    result = [{"ProductID": r[0], "ProductName": r[1], "Category": r[2], "Price": float(r[3]), "Stock": r[4], "Descript": r[5], "Discount": r[6], "ProductImage": r[7]} for r in rows]
-    return jsonify(result)
-# API lấy 10 sản phẩm bán chạy nhất (Dựa trên tiêu chí sắp cháy hàng)
-@app.route("/product/bestseller", methods=["GET"])
-def get_best_sellers():
-    with conn.cursor() as cursor:
-        # Lấy Top 10 sản phẩm có tồn kho ít nhất (ASC = Tăng dần)
-        cursor.execute("""
-            SELECT TOP 10 ProductID, ProductName, Category, Price, Stock, Descript, Discount, ProductImage 
-            FROM tblProduct 
-            WHERE Stock > 0 -- Có thể thêm điều kiện này để không lấy các sản phẩm đã hết sạch (Stock = 0)
-            ORDER BY Stock ASC
-        """)
-        rows = cursor.fetchall()
-        
-    result = []
-    for r in rows:
-        result.append({
-            "ProductID": r[0], 
-            "ProductName": r[1], 
-            "Category": r[2], 
-            "Price": float(r[3]), 
-            "Stock": r[4], 
-            "Descript": r[5], 
-            "Discount": r[6], 
-            "ProductImage": r[7]
-        })
-    return jsonify(result)
 
 @app.route('/cart/add', methods=['POST'])
 def add_to_cart():
@@ -357,5 +312,75 @@ def get_best_sellers():
         })
     return jsonify(result)
     
+@app.route("/coupon/check", methods=["POST"])
+def check_coupon():
+    data = request.json
+    code = data.get('code')
+    
+    if not code:
+        return jsonify({"error": "Vui lòng nhập mã giảm giá"}), 400
+
+    with conn.cursor() as cursor:
+        # Lấy thông tin mã
+        cursor.execute("""
+            SELECT CouponID, CouponCode, DiscountPercent, MaxDiscount, ExpiryDate, UsageLimit, UsedCount, IsActive 
+            FROM tblCoupon 
+            WHERE CouponCode = ?
+        """, (code,))
+        
+        row = cursor.fetchone()
+
+        if not row:
+            return jsonify({"error": "Mã giảm giá không tồn tại"}), 404
+            
+        coupon_id, coupon_code, discount_percent, max_discount, expiry_date, usage_limit, used_count, is_active = row
+
+        # Kiểm tra các điều kiện
+        if not is_active:
+            return jsonify({"error": "Mã giảm giá đã bị khóa"}), 400
+            
+        if expiry_date < date.today():
+            return jsonify({"error": "Mã giảm giá đã hết hạn"}), 400
+            
+        if used_count >= usage_limit:
+            return jsonify({"error": "Mã giảm giá đã hết lượt sử dụng"}), 400
+
+        # Nếu hợp lệ, trả về thông tin giảm giá
+        return jsonify({
+            "message": "Áp dụng mã thành công!",
+            "CouponID": coupon_id,
+            "CouponCode": coupon_code,
+            "DiscountPercent": discount_percent,
+            "MaxDiscount": float(max_discount)
+        }), 200
+
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USERNAME'] = 'hoangductrong280805@gmail.com'
+app.config['MAIL_PASSWORD'] = 'tmiaktqtuhsoavji' 
+app.config['MAIL_DEFAULT_SENDER'] = 'hoangductrong280805@gmail.com'
+
+mail = Mail(app)
+
+@app.route("/subscribe", methods=["POST"])
+def subscribe():
+    data = request.json
+    user_email = data.get('email')
+
+    if not user_email:
+        return jsonify({"error": "Vui lòng nhập email"}), 400
+
+    try:
+        msg = Message("Chào mừng bạn đến với Fruitables!",
+                      recipients=[user_email])
+        msg.html = render_template('emails/welcome.html', email=user_email)
+        
+        mail.send(msg)
+        return jsonify({"message": "Đăng ký thành công!"}), 200
+    except Exception as e:
+        # In ra log không dấu để tránh crash terminal Windows
+        print(f"Mail System Error: {str(e)}") 
+        return jsonify({"error": "He thong mail dang bao tri, thu lai sau!"}), 500
 if __name__ == "__main__":
     app.run(port=5000, debug=True)

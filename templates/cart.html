@@ -150,8 +150,8 @@
             </div>
 
             <div class="mt-5">
-                <input type="text" class="border-0 border-bottom rounded me-5 py-3 mb-4" placeholder="Coupon Code">
-                <button class="btn border-secondary rounded-pill px-4 py-3 text-primary" type="button">Apply
+                <input type="text" id="coupon-input" class="border-0 border-bottom rounded me-5 py-3 mb-4" placeholder="Coupon Code">
+                <button id="btn-apply-coupon" class="btn border-secondary rounded-pill px-4 py-3 text-primary" type="button">Apply
                     Coupon</button>
             </div>
 
@@ -164,6 +164,10 @@
                             <div class="d-flex justify-content-between mb-4">
                                 <h5 class="mb-0 me-4">Subtotal:</h5>
                                 <p class="mb-0" id="cart-subtotal">0 đ</p>
+                            </div>
+                            <div class="d-flex justify-content-between mb-4" id="discount-row" style="display: none !important;">
+                                <h5 class="mb-0 me-4 text-success">Discount <span id="coupon-name-display"></span>:</h5>
+                                <p class="mb-0 text-success" id="cart-discount">- 0 đ</p>
                             </div>
                             <div class="d-flex justify-content-between">
                                 <h5 class="mb-0 me-4">Shipping</h5>

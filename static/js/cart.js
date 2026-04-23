@@ -67,8 +67,33 @@ async function loadCart() {
         }
 
         subtotalEl.innerText = formatVND(subtotal);
-        totalEl.innerText = formatVND(subtotal + (subtotal > 0 ? SHIP_FEE : 0));
+        let discountAmount = 0;
+        const couponData = JSON.parse(localStorage.getItem('appliedCoupon'));
+        
+        if (couponData && subtotal > 0) {
+            // Tính tiền giảm: (Subtotal * Percent / 100)
+            discountAmount = subtotal * (couponData.percent / 100);
+            
+            // Giới hạn số tiền giảm (MaxDiscount)
+            if (discountAmount > couponData.max) {
+                discountAmount = couponData.max;
+            }
 
+            // Hiển thị ra màn hình
+            document.getElementById('discount-row').style.setProperty('display', 'flex', 'important');
+            document.getElementById('coupon-name-display').innerText = `(${couponData.code})`;
+            document.getElementById('cart-discount').innerText = `- ${formatVND(discountAmount)}`;
+        } else {
+            // Ẩn dòng discount nếu không có mã
+            document.getElementById('discount-row').style.setProperty('display', 'none', 'important');
+        }
+
+        subtotalEl.innerText = formatVND(subtotal);
+        
+        const shipFee = subtotal > 0 ? 30000 : 0; // Thay biến SHIP_FEE của bạn
+        const finalTotal = subtotal - discountAmount + shipFee;
+        
+        totalEl.innerText = formatVND(finalTotal);
     } catch (err) {
         console.error("Lỗi load giỏ hàng:", err);
     }
@@ -109,6 +134,45 @@ function saveCartToLocal(cartData) {
     // Lưu danh sách sản phẩm vào localStorage với key là 'cart'
     localStorage.setItem('cart', JSON.stringify(cartData));
 }
+$('#btn-apply-coupon').on('click', async function() {
+    const code = $('#coupon-input').val().trim();
+    if(!code) {
+        alert("Vui lòng nhập mã giảm giá!");
+        return;
+    }
 
+    try {
+        // Đã thay ${API_BASE} thành link thật để code của bạn chạy độc lập
+        const res = await fetch(`http://127.0.0.1:5000/coupon/check`, { 
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ code: code })
+        });
+        
+        const data = await res.json();
+
+        if(!res.ok) {
+            alert(data.error); // Thông báo lỗi (hết hạn, sai mã...)
+            return;
+        }
+
+        alert(data.message);
+        
+        // Lưu thông tin mã vào LocalStorage để mang sang trang Checkout
+        localStorage.setItem('appliedCoupon', JSON.stringify({
+            id: data.CouponID,
+            code: data.CouponCode,
+            percent: data.DiscountPercent,
+            max: data.MaxDiscount
+        }));
+
+        // Load lại giỏ hàng để cập nhật số tiền
+        loadCart();
+
+    } catch(err) {
+        console.error(err);
+        alert("Lỗi kết nối server!");
+    }
+});
 
 document.addEventListener('DOMContentLoaded', loadCart);

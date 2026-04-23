@@ -89,3 +89,12 @@ VALUES
     (3, 3, 1),
     (4, 4, 5),
     (5, 5, 2);
+
+-- 3. Thêm một số mã mẫu để test
+INSERT INTO tblCoupon (CouponCode, DiscountPercent, MaxDiscount, ExpiryDate, UsageLimit)
+VALUES 
+('GIAM10', 10, 50000, '2026-12-31', 100), -- Giảm 10%, tối đa 50k
+('GIAM20', 20, 100000, '2026-12-31', 50), -- Giảm 20%, tối đa 100k
+('HETHAN', 50, 200000, '2020-01-01', 10); -- Mã này đã hết hạn để test lỗi
+GO
+

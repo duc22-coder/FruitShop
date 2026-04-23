@@ -187,7 +187,36 @@ $(document).on("click", ".btn-login", function(){
         window.location.href = "/templates/login.html";
     }
 });
+// Xử lý nút Subscribe Now
+$('#btn-subscribe').on('click', function() {
+    const email = $('#subscribe-email').val().trim();
+    
+    if (!email || !email.includes('@')) {
+        alert("Vui lòng nhập đúng địa chỉ email!");
+        return;
+    }
 
+    // Hiệu ứng nút khi đang gửi
+    const $btn = $(this);
+    $btn.prop('disabled', true).text('Sending...');
+
+    $.ajax({
+        url: "http://127.0.0.1:5000/subscribe",
+        method: "POST",
+        contentType: "application/json",
+        data: JSON.stringify({ email: email }),
+        success: function(res) {
+            alert(res.message);
+            $('#subscribe-email').val(''); // Xóa trắng ô nhập
+        },
+        error: function(err) {
+            alert("Có lỗi xảy ra, vui lòng thử lại!");
+        },
+        complete: function() {
+            $btn.prop('disabled', false).text('Subscribe Now');
+        }
+    });
+});
 // 3. Khởi tạo
 $(document).ready(function () {
     // loadProducts();
