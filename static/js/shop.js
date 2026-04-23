@@ -2,13 +2,16 @@ const API_BASE = "http://127.0.0.1:5000";
 let currentProductList = []; // Biến lưu trữ danh sách sản phẩm hiện tại để sort
 let currentPage = 1;
 const itemsPerPage = 6; // mỗi trang 6 sản phẩm
-
-
+// sort theo gia
+let originalProductList = []; // dữ liệu gốc
+let currentMaxPrice = 90; // max giá (theo DB bạn)
+let currentSort = "default";
 function renderProducts(products, isSorting = false) {
     const container = document.getElementById('product-container');
     if (!container) return;
 
     if (!isSorting) {
+        originalProductList = products;
         currentProductList = products;
         currentPage = 1; // reset về trang 1 khi load mới
     }
@@ -116,11 +119,29 @@ function sortProducts(criteria) {
 
     // 🔥 CẬP NHẬT DATA CHÍNH
     currentProductList = sortedData;
-
+    applyFilters();
     // reset về page 1 khi sort
     currentPage = 1;
 
     renderProducts(currentProductList, true);
+}
+function setupPriceFilter() {
+    const range = document.getElementById('rangeInput');
+    const output = document.getElementById('amount');
+
+    if (!range || !output) return;
+
+    // set max theo DB bạn
+    range.max = 90000;
+    range.value = 90000;
+    output.value = 90000;
+
+    range.addEventListener('input', (e) => {
+        currentMaxPrice = parseInt(e.target.value);
+        output.value = currentMaxPrice;
+
+        applyFilters();
+    });
 }
 
 // ================== LOAD DATA ==================
@@ -216,11 +237,42 @@ function addToCart(productId) {
         .then(() => alert("Đã thêm vào giỏ hàng!"))
         .catch(() => alert("Không thể thêm vào giỏ hàng!"));
 }
+// sort gia
+function applyFilters() {
+    let data = [...originalProductList];
+
+    // 1. FILTER GIÁ
+    data = data.filter(p => p.Price <= currentMaxPrice);
+
+    // 2. SORT
+    switch (currentSort) {
+        case "price-asc":
+            data.sort((a, b) => a.Price - b.Price);
+            break;
+        case "price-desc":
+            data.sort((a, b) => b.Price - a.Price);
+            break;
+        case "name-asc":
+            data.sort((a, b) => a.ProductName.localeCompare(b.ProductName));
+            break;
+        case "name-desc":
+            data.sort((a, b) => b.ProductName.localeCompare(a.ProductName));
+            break;
+        default:
+            data.sort((a, b) => a.ProductID - b.ProductID);
+    }
+
+    currentProductList = data;
+    currentPage = 1;
+
+    renderProducts(currentProductList, true);
+}
 
 // ================== INIT ==================
 document.addEventListener('DOMContentLoaded', () => {
     shopLoadProducts();
     setupSearch();
+    setupPriceFilter();
     loadCategoryCounts();
 
     // 👉 Lắng nghe sự kiện Sort
