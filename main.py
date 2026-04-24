@@ -14,6 +14,7 @@ cn_str = 'DRIVER={ODBC Driver 17 for SQL Server};SERVER=LAPTOP-C8E5HODE;DATABASE
 conn = pyodbc.connect(cn_str, autocommit=True)
 tokens = {}  # Lưu trữ token và AccountID tương ứng
 
+# Annotation yêu cầu token khi gọi api
 def token_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
@@ -37,6 +38,7 @@ def token_required(f):
 
     return decorated
 
+# Đăng ký
 @app.route("/register", methods=["POST"])
 def register_api():
     cursor = None
@@ -92,6 +94,7 @@ def login_api():
     username = data.get("username")
     password = data.get("password")
 
+    #kiểm tra xem tài khoản mật khẩu có đúng không
     with conn.cursor() as cursor:
         cursor.execute(
             "SELECT AccountID, UserName FROM tblAccount WHERE UserName = ? AND Passwd = ?",
@@ -102,8 +105,24 @@ def login_api():
     if not row:
         return jsonify({"error": "Sai tài khoản hoặc mật khẩu"}), 401
 
+
     token = secrets.token_hex(32)
-    tokens[token] = row[0]
+    accountID = row[0]
+
+    # cập nhật token nếu tài khoản đang đăng nhập, nếu chưa thì thêm token hiện tại vào.
+    with conn.cursor() as cursor:
+        cursor.execute(
+            """
+            IF EXISTS (SELECT 1 FROM tblToken WHERE AccountID = ?)
+                UPDATE tblToken SET token = ? WHERE AccountID = ?
+            ELSE
+                INSERT INTO tblToken (token, AccountID) VALUES (?, ?)
+            """,
+            (accountID, token, accountID, token, accountID)
+        )
+        cursor.commit()
+
+    tokens[token] = accountID
     return jsonify({
         "message": "login success",
         "token": token,
@@ -253,7 +272,9 @@ def update_cart_quantity():
         return jsonify({"message": "Updated"})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
 @app.route("/product/search", methods=["GET"])
+
 def search_products():
     keyword = request.args.get('keyword', '')
     with conn.cursor() as cursor:
@@ -276,6 +297,7 @@ def search_products():
                "Price": float(r[3]), "Stock": r[4], "Descript": r[5], 
                "Discount": r[6], "ProductImage": r[7]} for r in rows]
     return jsonify(result)
+
 # 2. API Lọc sản phẩm theo danh mục (Category)
 @app.route("/product/category/<category_name>", methods=["GET"])
 def get_products_by_category(category_name):
@@ -285,6 +307,7 @@ def get_products_by_category(category_name):
         
     result = [{"ProductID": r[0], "ProductName": r[1], "Category": r[2], "Price": float(r[3]), "Stock": r[4], "Descript": r[5], "Discount": r[6], "ProductImage": r[7]} for r in rows]
     return jsonify(result)
+
 # API lấy 10 sản phẩm bán chạy nhất (Dựa trên tiêu chí sắp cháy hàng)
 @app.route("/product/bestseller", methods=["GET"])
 def get_best_sellers():
@@ -312,6 +335,40 @@ def get_best_sellers():
         })
     return jsonify(result)
     
+### CONTACT
+# Lấy thông tin địa chỉ các cửa hàng
+@app.route("/store/getAll", methods=["GET"])
+def get_store_infor():
+    with conn.cursor() as cursor:
+        cursor.execute("""
+            SELECT StoreID, StoreName, StoreAddress 
+            FROM tblStore
+        """)
+        rows = cursor.fetchall()
+    result = []
+    for r in rows:
+        result.append({
+            "id": r[0],
+            "name": r[1],
+            "address": r[2]
+        })
+    return jsonify(result) 
+
+@app.route("/store/updateLocation", methods=["PUT"])
+def update_store_location():
+    data = request.get_json()
+    id = data.get('id')
+    lat = data.get('lat')
+    lng = data.get('lng')
+    with conn.cursor() as cursor:
+        cursor.execute("""
+            UPDATE tblStore
+            SET lat = ? , lng = ? where StoreID = ?
+        """, (lat, lng, id))
+        if cursor.rowcount == 0:
+            return jsonify({"error": "There's an error while commiting sql query"})
+    return jsonify({"message": "Update location successfully for Store with id: " + str(id)})
+
 @app.route("/coupon/check", methods=["POST"])
 def check_coupon():
     data = request.json

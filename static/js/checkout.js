@@ -63,7 +63,6 @@ function calculateFinalTotal() {
 
     let discountAmount = 0;
     const couponData = JSON.parse(localStorage.getItem('appliedCoupon'));
-    
     if (couponData && subtotal > 0) {
         discountAmount = subtotal * (couponData.percent / 100);
         if (discountAmount > couponData.max) {
@@ -75,13 +74,13 @@ function calculateFinalTotal() {
     if (finalTotalEl) {
         // Tổng cuối = Tiền hàng - Tiền giảm + Phí ship
         let finalMoney = subtotal - discountAmount + shippingFee;
-        if(finalMoney < 0) finalMoney = 0; // Đề phòng lỗi âm tiền
+        if (finalMoney < 0) finalMoney = 0; // Đề phòng lỗi âm tiền
         finalTotalEl.innerText = formatVND(finalMoney);
     }
 }
 async function autofillUserInfo() {
     const token = localStorage.getItem("token");
-    
+
     // Nếu không có token (chưa đăng nhập) thì thôi, không fill
     if (!token) return;
 
@@ -106,7 +105,6 @@ async function autofillUserInfo() {
             if (document.getElementById('billing-phone')) {
                 document.getElementById('billing-phone').value = user.phone || "";
             }
-            
             console.log("Đã tự động điền thông tin mặc định!");
         }
     } catch (err) {
@@ -124,7 +122,6 @@ document.addEventListener('change', function (e) {
 document.addEventListener('DOMContentLoaded', () => {
     // 1. Lấy dữ liệu giỏ hàng để hiển thị (Code cũ của bạn)
     loadCheckoutData();
-    
     // 2. Tự động điền thông tin cá nhân (Code mới thêm)
     autofillUserInfo();
 });

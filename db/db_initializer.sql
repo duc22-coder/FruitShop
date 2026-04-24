@@ -1,12 +1,23 @@
 USE Fruitables;
 GO
+
+DELETE FROM tblCart
+DELETE FROM tblInvoiceDetail
+DELETE FROM tblOrder
+DELETE FROM tblPayment
+DELETE FROM tblInvoice
+DELETE FROM tblProduct
+DELETE FROM tblAccount
+DELETE FROM tblToken
+
+
 DBCC CHECKIDENT ('tblAccount', RESEED, 0);
 DBCC CHECKIDENT ('tblProduct', RESEED, 0);
 DBCC CHECKIDENT ('tblInvoice', RESEED, 0);
 DBCC CHECKIDENT ('tblPayment', RESEED, 0);
 DBCC CHECKIDENT ('tblOrder', RESEED, 0);
 DBCC CHECKIDENT ('tblInvoiceDetail', RESEED, 0);
-delete from tblAccount
+
 -- 1. tblAccount (bỏ AccountID)
 INSERT INTO tblAccount
     (UserName, Passwd, UserAddress, Phone, AccountRole)
@@ -18,8 +29,6 @@ VALUES
     (N'Nguyễn Duy Minh', '123456', N'Cần Thơ', '0900000005', 'USER'),
     (N'admin', '123456', 'Kim Lan', '0859376293', 'USER');
 
-select *
-from tblAccount
 -- 2. tblProduct (bỏ ProductID)
 INSERT INTO tblProduct
     (ProductName, Category, Price, Stock, DueDate, Descript, Discount, ProductImage)
@@ -57,8 +66,6 @@ VALUES
     (4, N'Tiền mặt (COD)', '2026-04-04'),
     (5, N'Chuyển khoản', '2026-04-05');
 
-select *
-from tblPayment
 -- 5. tblOrder (bỏ OrderID)
 INSERT INTO tblOrder
     (DeliveryMethod, InvoiceID, OrderAddress, Phone)
@@ -90,11 +97,45 @@ VALUES
     (4, 4, 5),
     (5, 5, 2);
 
--- 3. Thêm một số mã mẫu để test
-INSERT INTO tblCoupon (CouponCode, DiscountPercent, MaxDiscount, ExpiryDate, UsageLimit)
-VALUES 
-('GIAM10', 10, 50000, '2026-12-31', 100), -- Giảm 10%, tối đa 50k
-('GIAM20', 20, 100000, '2026-12-31', 50), -- Giảm 20%, tối đa 100k
-('HETHAN', 50, 200000, '2020-01-01', 10); -- Mã này đã hết hạn để test lỗi
-GO
+INSERT INTO tblStore
+    (StoreName, StoreAddress)
+VALUES
+    (N'Fruitable Cầu Giấy', N'số 3 đường Cầu Giấy, Cầu Giấy, Hà Nội'),
+    (N'Fruitable Lê Văn Lương', N'27 Đ. Lê Văn Lương, Trung Hoà, Thanh Xuân, Hà Nội'),
+    (N'Fruitable Mỹ Đình', N'15 Nguyễn Hoàng, Mỹ Đình, Nam Từ Liêm, Hà Nội'),
+    (N'Fruitable Xuân Thủy', N'112 Xuân Thủy, Dịch Vọng Hậu, Cầu Giấy, Hà Nội'),
+    (N'Fruitable Kim Mã', N'298 Kim Mã, Ba Đình, Hà Nội'),
+    (N'Fruitable Hai Bà Trưng', N'45 Bà Triệu, Hai Bà Trưng, Hà Nội'),
+    (N'Fruitable Hoàng Quốc Việt', N'210 Hoàng Quốc Việt, Cầu Giấy, Hà Nội'),
+    (N'Fruitable Linh Đàm', N'12 Nguyễn Hữu Thọ, Hoàng Mai, Hà Nội'),
+    (N'Fruitable Hà Đông', N'89 Quang Trung, Hà Đông, Hà Nội'),
+    (N'Fruitable Long Biên', N'320 Nguyễn Văn Cừ, Long Biên, Hà Nội');
 
+INSERT INTO tblCoupon
+    (CouponCode, DiscountPercent, MaxDiscount, ExpiryDate, UsageLimit)
+VALUES
+    ('GIAM10', 10, 50000, '2026-12-31', 100),
+    -- Giảm 10%, tối đa 50k
+    ('GIAM20', 20, 100000, '2026-12-31', 50),
+    -- Giảm 20%, tối đa 100k
+    ('HETHAN', 50, 200000, '2020-01-01', 10);
+-- Mã này đã hết hạn để test lỗi
+
+SELECT *
+FROM tblAccount
+SELECT *
+FROM tblProduct
+SELECT *
+FROM tblCart
+SELECT *
+FROM tblInvoice
+SELECT *
+FROM tblInvoiceDetail
+SELECT *
+FROM tblOrder
+SELECT *
+FROM tblPayment
+SELECT *
+FROM tblToken
+SELECT *
+FROM tblStore
