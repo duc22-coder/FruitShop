@@ -81,7 +81,6 @@ async function loadCart() {
 
             // Hiển thị ra màn hình
             document.getElementById('discount-row').style.setProperty('display', 'flex', 'important');
-            document.getElementById('coupon-name-display').innerText = `(${couponData.code})`;
             document.getElementById('cart-discount').innerText = `- ${formatVND(discountAmount)}`;
         } else {
             // Ẩn dòng discount nếu không có mã
