@@ -144,12 +144,12 @@ async function showRouteTo(destination) {
     }
 }
 
-function setStoreLocation(){
+function setStoreLocation() {
     $.ajax({
         url: "http://127.0.0.1:5000/store/getAll",
         method: "GET",
         contentType: "application/json",
-        success: async function(res){
+        success: async function (res) {
             storeAddresses = res;
             console.log('storeAddresses', storeAddresses);
 
@@ -204,7 +204,7 @@ function setStoreLocation(){
             }
             renderStoreList();
         },
-        error: function(e){
+        error: function (e) {
             alert("get stores addresses failed");
         }
     });

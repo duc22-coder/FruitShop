@@ -28,7 +28,7 @@ function loadProducts(apiUrl = "http://127.0.0.1:5000/product/getAllProduct") {
                             <div class="d-flex justify-content-between flex-lg-wrap mt-auto">
                                 <p class="text-dark fs-5 fw-bold mb-0">${p.Price.toLocaleString('vi-VN')} VNĐ</p>
                                 <button onclick="addToCart(${p.ProductID})" class="btn border border-secondary rounded-pill px-3 text-primary">
-                                    <i class="fa fa-shopping-bag me-2 text-primary"></i> Mua ngay
+                                    <i class="fa fa-shopping-bag me-2 text-primary"></i> Add
                                 </button>
                             </div>
                         </div>

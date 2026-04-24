@@ -4,11 +4,13 @@ import pyodbc
 from functools import wraps
 from flask import Flask, render_template, request, jsonify
 from flask_cors import CORS
+from datetime import date
+from flask_mail import Mail, Message
 
 app = Flask(__name__)
 CORS(app, supports_credentials=True)
 
-cn_str = 'DRIVER={ODBC Driver 17 for SQL Server};SERVER=DATPHUNG;DATABASE=Fruitables;Trusted_Connection=yes;MARS_Connection=yes'
+cn_str = 'DRIVER={ODBC Driver 17 for SQL Server};SERVER=ADMIN-PC;DATABASE=Fruitables;Trusted_Connection=yes;MARS_Connection=yes'
 conn = pyodbc.connect(cn_str, autocommit=True)
 tokens = {}  # Lưu trữ token và AccountID tương ứng
 
@@ -365,9 +367,78 @@ def update_store_location():
         """, (lat, lng, id))
         if cursor.rowcount == 0:
             return jsonify({"error": "There's an error while commiting sql query"})
-    return jsonify({"message": "Update location successfully for Stor with id: " + str(id)})
+    return jsonify({"message": "Update location successfully for Store with id: " + str(id)})
 
+@app.route("/coupon/check", methods=["POST"])
+def check_coupon():
+    data = request.json
+    code = data.get('code')
+    
+    if not code:
+        return jsonify({"error": "Vui lòng nhập mã giảm giá"}), 400
 
+    with conn.cursor() as cursor:
+        # Lấy thông tin mã
+        cursor.execute("""
+            SELECT CouponID, CouponCode, DiscountPercent, MaxDiscount, ExpiryDate, UsageLimit, UsedCount, IsActive 
+            FROM tblCoupon 
+            WHERE CouponCode = ?
+        """, (code,))
+        
+        row = cursor.fetchone()
+
+        if not row:
+            return jsonify({"error": "Mã giảm giá không tồn tại"}), 404
+            
+        coupon_id, coupon_code, discount_percent, max_discount, expiry_date, usage_limit, used_count, is_active = row
+
+        # Kiểm tra các điều kiện
+        if not is_active:
+            return jsonify({"error": "Mã giảm giá đã bị khóa"}), 400
+            
+        if expiry_date < date.today():
+            return jsonify({"error": "Mã giảm giá đã hết hạn"}), 400
+            
+        if used_count >= usage_limit:
+            return jsonify({"error": "Mã giảm giá đã hết lượt sử dụng"}), 400
+
+        # Nếu hợp lệ, trả về thông tin giảm giá
+        return jsonify({
+            "message": "Áp dụng mã thành công!",
+            "CouponID": coupon_id,
+            "CouponCode": coupon_code,
+            "DiscountPercent": discount_percent,
+            "MaxDiscount": float(max_discount)
+        }), 200
+
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USERNAME'] = 'hoangductrong280805@gmail.com'
+app.config['MAIL_PASSWORD'] = 'tmiaktqtuhsoavji' 
+app.config['MAIL_DEFAULT_SENDER'] = 'hoangductrong280805@gmail.com'
+
+mail = Mail(app)
+
+@app.route("/subscribe", methods=["POST"])
+def subscribe():
+    data = request.json
+    user_email = data.get('email')
+
+    if not user_email:
+        return jsonify({"error": "Vui lòng nhập email"}), 400
+
+    try:
+        msg = Message("Chào mừng bạn đến với Fruitables!",
+                      recipients=[user_email])
+        msg.html = render_template('emails/welcome.html', email=user_email)
+        
+        mail.send(msg)
+        return jsonify({"message": "Đăng ký thành công!"}), 200
+    except Exception as e:
+        # In ra log không dấu để tránh crash terminal Windows
+        print(f"Mail System Error: {str(e)}") 
+        return jsonify({"error": "He thong mail dang bao tri, thu lai sau!"}), 500
 
 if __name__ == "__main__":
     app.run(port=5000, debug=True)

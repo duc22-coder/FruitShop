@@ -96,7 +96,6 @@
     });
 
 })(jQuery);
-
 const formatVND = (price) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
 const SHIP_FEE = 30000;
 
@@ -108,37 +107,37 @@ function logout() {
     }
 }
 
-function validateLogin(){
+
+function validateLogin() {
     var token = localStorage.getItem("token");
 
-    if(!token || token == null) {
+    if (!token) {
         window.location.href = "/templates/login.html";
     }
-    else
-    {
+    else {
         $.ajax({
             url: "http://127.0.0.1:5000/account/getInfor",
             method: "GET",
             headers: {
                 "Authorization": "Bearer " + token
             },
-            success: function(res){
+            success: function (res) {
                 $("#login-btn").html(
-                `<i class="fas fa-user fa-2x"></i>
+                    `<i class="fas fa-user fa-2x"></i>
                 <span class="d-none d-md-inline ms-1 small text-dark">
                     ${res.name}
                 </span>`
                 );
-                updateCartQuantityIcon();
             },
-            error: function(e){
-                window.location.href = "/templates/login.html";
+            error: function (e) {
+                alert("get info failed");
+                console.log(e);
             }
         });
     }
 }
 
-function updateCartQuantityIcon(){
+function updateCartQuantityIcon() {
     var token = localStorage.getItem("token");
 
     $.ajax({
@@ -148,10 +147,10 @@ function updateCartQuantityIcon(){
             "Authorization": "Bearer " + token
         },
         contentType: "application/json",
-        success: function(res){
+        success: function (res) {
             $('#cart-amount').html(res.amount);
         },
-        error: function(e){
+        error: function (e) {
             $('#cart-amount').html(-1);
             alert("update cart amount icon failed");
         }
@@ -159,7 +158,7 @@ function updateCartQuantityIcon(){
 }
 
 
-function logout(token){
+function logout(token) {
     $.ajax({
         url: "http://127.0.0.1:5000/logout",
         method: "POST",
@@ -167,29 +166,59 @@ function logout(token){
             "Authorization": "Bearer " + token
         },
         contentType: "application/json",
-        success: function(res){
-            window.location.href = "/templates/login.html";
+        success: function (res) {
             alert("log out success", res.message);
             localStorage.removeItem("token");
+            window.location.href = "/templates/login.html";
         },
-        error: function(e){
+        error: function (e) {
             alert("logout failed");
         }
     });
 }
 
-$(document).on("click", ".btn-login", function(){
+$(document).on("click", ".btn-login", function () {
     const token = localStorage.getItem("token");
-    if (token != null){
+    if (token != null) {
         Logout(token);
     }
-    else{
+    else {
         window.location.href = "/templates/login.html";
     }
 });
+// Xử lý nút Subscribe Now
+$('#btn-subscribe').on('click', function () {
+    const email = $('#subscribe-email').val().trim();
 
+    if (!email || !email.includes('@')) {
+        alert("Vui lòng nhập đúng địa chỉ email!");
+        return;
+    }
+
+    // Hiệu ứng nút khi đang gửi
+    const $btn = $(this);
+    $btn.prop('disabled', true).text('Sending...');
+
+    $.ajax({
+        url: "http://127.0.0.1:5000/subscribe",
+        method: "POST",
+        contentType: "application/json",
+        data: JSON.stringify({ email: email }),
+        success: function (res) {
+            alert(res.message);
+            $('#subscribe-email').val(''); // Xóa trắng ô nhập
+        },
+        error: function (err) {
+            alert("Có lỗi xảy ra, vui lòng thử lại!");
+        },
+        complete: function () {
+            $btn.prop('disabled', false).text('Subscribe Now');
+        }
+    });
+});
 // 3. Khởi tạo
 $(document).ready(function () {
     // loadProducts();
     validateLogin();
+    updateCartQuantityIcon();
 });

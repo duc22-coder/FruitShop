@@ -141,7 +141,7 @@
                             <div class="col-md-12 col-lg-6">
                                 <div class="form-item w-100">
                                     <label class="form-label my-3">First Name<sup>*</sup></label>
-                                    <input type="text" class="form-control">
+                                    <input type="text" id="billing-name" class="form-control">
                                 </div>
                             </div>
                             <div class="col-md-12 col-lg-6">
@@ -153,11 +153,11 @@
                         </div>
                         <div class="form-item">
                             <label class="form-label my-3">Address <sup>*</sup></label>
-                            <input type="text" class="form-control">
+                            <input type="text" id="billing-address" class="form-control">
                         </div>
                         <div class="form-item">
                             <label class="form-label my-3">Phone Number<sup>*</sup></label>
-                            <input type="tel" class="form-control">
+                            <input type="tel" id="billing-phone" class="form-control">
                         </div>
                         <hr>
                         <div class="form-item">
@@ -263,9 +263,9 @@
                     </div>
                     <div class="col-lg-6">
                         <div class="position-relative mx-auto">
-                            <input class="form-control border-0 w-100 py-3 px-4 rounded-pill" type="number"
-                                placeholder="Your Email">
-                            <button type="submit"
+                            <input id="subscribe-email" class="form-control border-0 w-100 py-3 px-4 rounded-pill"
+                                placeholder="Your email" type="email">
+                            <button id="btn-subscribe" type="button"
                                 class="btn btn-primary border-0 border-secondary py-3 px-4 position-absolute rounded-pill text-white"
                                 style="top: 0; right: 0;">Subscribe Now</button>
                         </div>

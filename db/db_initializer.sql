@@ -110,13 +110,32 @@ VALUES
     (N'Fruitable Linh Đàm', N'12 Nguyễn Hữu Thọ, Hoàng Mai, Hà Nội'),
     (N'Fruitable Hà Đông', N'89 Quang Trung, Hà Đông, Hà Nội'),
     (N'Fruitable Long Biên', N'320 Nguyễn Văn Cừ, Long Biên, Hà Nội');
-    
-SELECT * FROM tblAccount
-SELECT * FROM tblProduct
-SELECT * FROM tblCart
-SELECT * FROM tblInvoice
-SELECT * FROM tblInvoiceDetail
-SELECT * FROM tblOrder
-SELECT * FROM tblPayment
-SELECT * FROM tblToken
-SELECT * FROM tblStore
+
+INSERT INTO tblCoupon
+    (CouponCode, DiscountPercent, MaxDiscount, ExpiryDate, UsageLimit)
+VALUES
+    ('GIAM10', 10, 50000, '2026-12-31', 100),
+    -- Giảm 10%, tối đa 50k
+    ('GIAM20', 20, 100000, '2026-12-31', 50),
+    -- Giảm 20%, tối đa 100k
+    ('HETHAN', 50, 200000, '2020-01-01', 10);
+-- Mã này đã hết hạn để test lỗi
+
+SELECT *
+FROM tblAccount
+SELECT *
+FROM tblProduct
+SELECT *
+FROM tblCart
+SELECT *
+FROM tblInvoice
+SELECT *
+FROM tblInvoiceDetail
+SELECT *
+FROM tblOrder
+SELECT *
+FROM tblPayment
+SELECT *
+FROM tblToken
+SELECT *
+FROM tblStore

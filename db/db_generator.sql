@@ -106,19 +106,49 @@ CREATE TABLE tblCart
 
 CREATE TABLE tblToken
 (
-	token NVARCHAR(255) PRIMARY KEY,
-	AccountID int,
-	FOREIGN KEY (AccountID) 
+    token NVARCHAR(255) PRIMARY KEY,
+    AccountID int,
+    FOREIGN KEY (AccountID) 
     REFERENCES tblAccount(AccountID)
 	ON DELETE CASCADE
 )
 
 CREATE TABLE tblStore
 (
-	StoreID INT PRIMARY KEY IDENTITY(1,1),
-	StoreName NVARCHAR(255) not null,
-	StoreAddress NVARCHAR(255) not null,
-	lat FLOAT,
-	lng FLOAT
+    StoreID INT PRIMARY KEY IDENTITY(1,1),
+    StoreName NVARCHAR(255) not null,
+    StoreAddress NVARCHAR(255) not null,
+    lat FLOAT,
+    lng FLOAT
 );
+CREATE TABLE tblCoupon
+(
+    CouponID INT PRIMARY KEY IDENTITY(1,1),
+    CouponCode VARCHAR(50) UNIQUE NOT NULL,
+    -- Tên mã (VD: GIAM10K)
+    DiscountPercent INT NOT NULL,
+    -- Phần trăm giảm (VD: 10%)
+    MaxDiscount DECIMAL(18,2) NOT NULL,
+    -- Mức giảm tối đa (VD: Tối đa 50.000đ)
+    ExpiryDate DATE NOT NULL,
+    -- Hạn sử dụng
+    UsageLimit INT DEFAULT 100,
+    -- Số lượng mã tối đa được nhập
+    UsedCount INT DEFAULT 0,
+    -- Số lượng mã đã được sử dụng
+    IsActive BIT DEFAULT 1
+    -- 1 là đang mở, 0 là khóa
+);
+GO
 
+-- 2. Cập nhật bảng Hóa đơn để lưu lại mã đã dùng
+ALTER TABLE tblInvoice 
+ADD CouponID INT NULL;
+GO
+
+ALTER TABLE tblInvoice 
+ADD CONSTRAINT FK_Invoice_Coupon 
+FOREIGN KEY (CouponID) 
+REFERENCES tblCoupon(CouponID) 
+ON DELETE SET NULL;
+GO
