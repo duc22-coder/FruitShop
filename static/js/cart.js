@@ -68,7 +68,7 @@ async function loadCart() {
 
         subtotalEl.innerText = formatVND(subtotal);
         let discountAmount = 0;
-        const couponData = JSON.parse(localStorage.getItem('appliedCoupon'));
+        const couponData = JSON.parse(sessionStorage.getItem('appliedCoupon'));
 
         if (couponData && subtotal > 0) {
             // Tính tiền giảm: (Subtotal * Percent / 100)
@@ -156,8 +156,8 @@ $('#btn-apply-coupon').on('click', async function () {
         }
 
         alert(data.message);
-        // Lưu thông tin mã vào LocalStorage để mang sang trang Checkout
-        localStorage.setItem('appliedCoupon', JSON.stringify({
+        // Lưu thông tin mã vào sessionStorage để mang sang trang Checkout
+        sessionStorage.setItem('appliedCoupon', JSON.stringify({
             id: data.CouponID,
             code: data.CouponCode,
             percent: data.DiscountPercent,

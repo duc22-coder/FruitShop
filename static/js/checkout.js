@@ -54,27 +54,37 @@ async function loadCheckoutData() {
 // 2. Hàm tính tổng tiền cuối cùng = Subtotal + Shipping
 function calculateFinalTotal() {
     const subtotalText = document.getElementById('subtotal').innerText;
-    // Chuyển đổi "260.000 VNĐ" thành số 260000
     const subtotal = parseInt(subtotalText.replace(/\D/g, '')) || 0;
 
-    // Lấy giá trị phí ship từ radio button đang được chọn
     const shippingRadio = document.querySelector('input[name="shipping"]:checked');
     const shippingFee = shippingRadio ? parseInt(shippingRadio.value) : 0;
 
     let discountAmount = 0;
-    const couponData = JSON.parse(localStorage.getItem('appliedCoupon'));
+    
+    // ĐỔI TỪ localStorage SANG sessionStorage Ở ĐÂY
+    const couponData = JSON.parse(sessionStorage.getItem('appliedCoupon')); 
+
+    const discountRow = document.getElementById('discount-row'); // Dòng bao ngoài
+    const discountVal = document.getElementById('cart-discount'); // Thẻ hiện số tiền
+
     if (couponData && subtotal > 0) {
         discountAmount = subtotal * (couponData.percent / 100);
         if (discountAmount > couponData.max) {
             discountAmount = couponData.max;
         }
+
+        // Nếu có mã thì hiện dòng Discount lên
+        if (discountRow) discountRow.style.setProperty('display', 'flex', 'important');
+        if (discountVal) discountVal.innerText = `- ${formatVND(discountAmount)}`;
+    } else {
+        // Không có mã thì ẩn đi
+        if (discountRow) discountRow.style.setProperty('display', 'none', 'important');
     }
 
     const finalTotalEl = document.getElementById('final-total');
     if (finalTotalEl) {
-        // Tổng cuối = Tiền hàng - Tiền giảm + Phí ship
         let finalMoney = subtotal - discountAmount + shippingFee;
-        if (finalMoney < 0) finalMoney = 0; // Đề phòng lỗi âm tiền
+        if (finalMoney < 0) finalMoney = 0;
         finalTotalEl.innerText = formatVND(finalMoney);
     }
 }
