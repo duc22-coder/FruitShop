@@ -42,7 +42,33 @@ CREATE TABLE tblCoupon
     IsActive BIT DEFAULT 1
 );
 
+<<<<<<< HEAD
 -- 4. Tạo bảng tblInvoice
+=======
+
+CREATE TABLE tblCoupon
+(
+    CouponID INT PRIMARY KEY IDENTITY(1,1),
+    CouponCode VARCHAR(50) UNIQUE NOT NULL,
+    -- Tên mã (VD: GIAM10K)
+    DiscountPercent INT NOT NULL,
+    -- Phần trăm giảm (VD: 10%)
+    MaxDiscount DECIMAL(18,2) NOT NULL,
+    -- Mức giảm tối đa (VD: Tối đa 50.000đ)
+    ExpiryDate DATE NOT NULL,
+    -- Hạn sử dụng
+    UsageLimit INT DEFAULT 100,
+    -- Số lượng mã tối đa được nhập
+    UsedCount INT DEFAULT 0,
+    -- Số lượng mã đã được sử dụng
+    IsActive BIT DEFAULT 1
+    -- 1 là đang mở, 0 là khóa
+);
+GO
+
+
+-- 3. Tạo bảng tblInvoice
+>>>>>>> a33fc6f (xac nhan thanh toan)
 CREATE TABLE tblInvoice
 (
     InvoiceID INT PRIMARY KEY IDENTITY(1,1),
@@ -56,10 +82,18 @@ CREATE TABLE tblInvoice
     ON DELETE SET NULL,
 
     InvoiceState NVARCHAR(50),
+<<<<<<< HEAD
 
+=======
+	CouponID INT NULL,
+>>>>>>> a33fc6f (xac nhan thanh toan)
     CONSTRAINT FK_Invoice_Account 
     FOREIGN KEY (AccountID) 
-    REFERENCES tblAccount(AccountID)
+    REFERENCES tblAccount(AccountID),
+	CONSTRAINT FK_Invoice_Coupon 
+	FOREIGN KEY (CouponID) 
+	REFERENCES tblCoupon(CouponID) 
+	ON DELETE SET NULL
 );
 
 -- 5. Tạo bảng tblPayment
@@ -142,6 +176,10 @@ CREATE TABLE tblStore
     StoreAddress NVARCHAR(255) not null,
     lat FLOAT,
     lng FLOAT
+<<<<<<< HEAD
 );
 
 GO
+=======
+);
+>>>>>>> a33fc6f (xac nhan thanh toan)

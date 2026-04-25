@@ -1,14 +1,16 @@
-// Lắng nghe mỗi khi người dùng tick chọn loại phí ship
 document.addEventListener('change', function (e) {
     if (e.target && e.target.name === 'shipping') {
         calculateFinalTotal();
     }
 });
+
 if (typeof formatVND !== 'function') {
     window.formatVND = function (n) {
         return n.toLocaleString('it-IT', { style: 'currency', currency: 'VND' }).replace('VND', 'VNĐ');
     };
 }
+let paymentCheckInterval = null;
+
 async function loadCheckoutData() {
     const userId = localStorage.getItem("accountID");
     const container = document.getElementById('checkout-cart-items');
@@ -29,8 +31,6 @@ async function loadCheckoutData() {
         container.innerHTML = cartItems.map(item => {
             const itemTotal = item.Price * item.Quantity;
             subtotal += itemTotal;
-
-
             return `
                 <tr>
                     <th scope="row">
@@ -51,13 +51,12 @@ async function loadCheckoutData() {
         console.error("Lỗi load checkout:", err);
     }
 }
-// 2. Hàm tính tổng tiền cuối cùng = Subtotal + Shipping
+
 function calculateFinalTotal() {
     const subtotalText = document.getElementById('subtotal').innerText;
-    // Chuyển đổi "260.000 VNĐ" thành số 260000
+
     const subtotal = parseInt(subtotalText.replace(/\D/g, '')) || 0;
 
-    // Lấy giá trị phí ship từ radio button đang được chọn
     const shippingRadio = document.querySelector('input[name="shipping"]:checked');
     const shippingFee = shippingRadio ? parseInt(shippingRadio.value) : 0;
 
@@ -72,7 +71,6 @@ function calculateFinalTotal() {
 
     const finalTotalEl = document.getElementById('final-total');
     if (finalTotalEl) {
-        // Tổng cuối = Tiền hàng - Tiền giảm + Phí ship
         let finalMoney = subtotal - discountAmount + shippingFee;
         if (finalMoney < 0) finalMoney = 0; // Đề phòng lỗi âm tiền
         finalTotalEl.innerText = formatVND(finalMoney);
@@ -85,7 +83,9 @@ async function autofillUserInfo() {
     try {
         const res = await fetch("http://127.0.0.1:5000/account/getInfor", {
             method: "GET",
-            headers: { "Authorization": `Bearer ${token}` }
+            headers: {
+                "Authorization": `Bearer ${token}`
+            }
         });
 
         if (res.ok) {
@@ -123,24 +123,60 @@ async function autofillUserInfo() {
         console.error("Lỗi autofill:", err);
     }
 }
-// 3. Lắng nghe sự kiện thay đổi phí ship khi người dùng click chọn
 document.addEventListener('change', function (e) {
     if (e.target && e.target.name === 'shipping') {
         calculateFinalTotal();
     }
 });
 
-// Chạy khi trang web tải xong
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. Lấy dữ liệu giỏ hàng để hiển thị (Code cũ của bạn)
     loadCheckoutData();
     // 2. Tự động điền thông tin cá nhân (Code mới thêm)
     autofillUserInfo();
 });
-function generateQRCode() {
-    // Lấy số tiền từ giao diện (đã được render ở bước trên)
+
+async function placeOrder(){
     const finalTotalText = document.getElementById('final-total').innerText;
     const realAmount = finalTotalText.replace(/\D/g, "");
+
+    try {
+        const invoiceID = await addNewInvoice(realAmount);
+        generateQRCode(realAmount, invoiceID);
+    } catch (error) {
+        console.error("addNewInvoice failed:", error);
+        alert(error?.error || "Khong tao duoc hoa don.");
+    }
+}
+
+function addNewInvoice(realAmount){
+    const token = localStorage.getItem("token");
+
+    return new Promise((resolve, reject) => {
+        let requestData = {
+            "AccountID": localStorage.getItem("accountID"),
+            "TotalPayment": realAmount,
+            "InvoiceState": "Chờ xử lý",
+            "CouponID": JSON.parse(localStorage.getItem("appliedCoupon"))?.id
+        };
+
+        $.ajax({
+            url: "http://127.0.0.1:5000/invoice/addNew",
+            method: "POST",
+            contentType: "application/json; charset=UTF-8",
+            dataType: "json",
+            data: JSON.stringify(requestData),
+            success: function(res){
+                resolve(res.id); // trả về invoiceID
+            },
+            error: function(e){
+                console.log(e);
+                reject(e.responseJSON || e.statusText || "Request failed");
+            }
+        });
+    });
+}
+
+function generateQRCode(realAmount, invoiceID) {
 
     if (!realAmount || realAmount === "0") {
         alert("Giỏ hàng trống, không thể tạo mã thanh toán!");
@@ -151,7 +187,7 @@ function generateQRCode() {
         "accountNo": "4530072005",
         "accountName": "Phùng Tuấn Đạt",
         "acqId": "970422",
-        "addInfo": "Thanh toan don hang Fruitables",
+        "addInfo": "INV" + invoiceID,
         "amount": realAmount,
         "template": "compact"
     };
@@ -173,6 +209,8 @@ function generateQRCode() {
                 $('html, body').animate({
                     scrollTop: $("#qr-container").offset().top - 100
                 }, 500);
+                window.currentInvoiceID = invoiceID;
+                startPaymentPolling();
             } else {
                 alert("Lỗi tạo mã QR: " + response.desc);
             }
@@ -180,5 +218,38 @@ function generateQRCode() {
         error: function () {
             alert("Không thể kết nối đến server VietQR");
         }
+    });
+}
+
+function startPaymentPolling() {
+    if (paymentCheckInterval) {
+        clearInterval(paymentCheckInterval);
+    }
+
+    paymentCheckInterval = setInterval(checkPayment, 3000);
+}
+
+function checkPayment(){
+    if (!window.currentInvoiceID) {
+        if (paymentCheckInterval) {
+            clearInterval(paymentCheckInterval);
+            paymentCheckInterval = null;
+        }
+        return;
+    }
+
+    fetch(`http://127.0.0.1:5000/invoice/check-payment/${window.currentInvoiceID}`)
+    .then(r => r.json())
+    .then(res => {
+        if(res.paid){
+            alert("Thanh toán thành công");
+            window.currentInvoiceID = null;
+            clearInterval(paymentCheckInterval);
+            paymentCheckInterval = null;
+            window.location.href = "/templates/index.html";
+        }
+    })
+    .catch(error => {
+        console.error("checkPayment failed:", error);
     });
 }

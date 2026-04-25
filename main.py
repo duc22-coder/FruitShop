@@ -1,11 +1,13 @@
 from ast import keyword
 import secrets
 import pyodbc
+import requests
 from functools import wraps
 from flask import Flask, render_template, request, jsonify
 from flask_cors import CORS
 from datetime import date
 from flask_mail import Mail, Message
+
 
 app = Flask(__name__)
 CORS(app, supports_credentials=True)
@@ -14,7 +16,7 @@ cn_str = 'DRIVER={ODBC Driver 17 for SQL Server};SERVER=ADMIN-PC;DATABASE=Fruita
 conn = pyodbc.connect(cn_str, autocommit=True)
 tokens = {}  # Lưu trữ token và AccountID tương ứng
 
-# Annotation yêu cầu token khi gọi api
+# yêu cầu token khi gọi api
 def token_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
@@ -278,7 +280,6 @@ def update_cart_quantity():
         return jsonify({"error": str(e)}), 500
 
 @app.route("/product/search", methods=["GET"])
-
 def search_products():
     keyword = request.args.get('keyword', '')
     with conn.cursor() as cursor:
@@ -414,6 +415,90 @@ def check_coupon():
             "DiscountPercent": discount_percent,
             "MaxDiscount": float(max_discount)
         }), 200
+
+# thanh toan
+@app.route("/invoice/addNew", methods=["POST"])
+def add_new_invoice():
+    data = request.get_json(silent=True) or {}
+    accountId = data.get("AccountID")
+    total = data.get("TotalPayment")
+    state = data.get("InvoiceState")
+    coupon = data.get("CouponID")
+
+    if not accountId or not total or not state:
+        return jsonify({"error": "Missing required invoice data"}), 400
+
+    try:
+        accountId = int(accountId)
+        total = float(total)
+    except (TypeError, ValueError):
+        return jsonify({"error": "Invalid AccountID or TotalPayment"}), 400
+
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute("""
+                INSERT INTO tblInvoice (AccountID, TotalPayment, InvoiceState, CouponID)
+                OUTPUT INSERTED.InvoiceID
+                VALUES (?, ?, ?, ?)
+            """, (accountId, total, state, coupon))
+
+            row = cursor.fetchone()
+
+            if not row:
+                return jsonify({"error": "There's an error while committing sql query"}), 500
+
+            invoiceId = row[0]
+    except pyodbc.Error as exc:
+        return jsonify({"error": str(exc)}), 500
+
+    return jsonify({
+        "message": "Create invoice successfully",
+        "id": invoiceId
+    })
+
+@app.route("/invoice/check-payment/<int:id>")
+def check_payment(id):
+    try:
+        res = requests.get(
+            "https://my.sepay.vn/userapi/transactions/list",
+            headers={
+                "Authorization": "Bearer "
+            },
+            timeout=10
+        )
+
+        if not res.ok:
+            print(f"SEPAY HTTP ERROR {res.status_code}: {res.text[:300]}")
+            return jsonify({"paid": False, "error": "SePay request failed"}), 502
+
+        if "application/json" not in res.headers.get("Content-Type", ""):
+            print(f"SEPAY INVALID RESPONSE: {res.text[:300]}")
+            return jsonify({"paid": False, "error": "SePay returned non-JSON response"}), 502
+
+        data = res.json()
+
+        if "transactions" not in data:
+            return jsonify({"paid": False})
+
+        for trans in data["transactions"]:
+            content = trans.get("transaction_content", "")
+
+            if f"INV{id}" in content:
+                cursor = conn.cursor()
+                cursor.execute("""
+                    UPDATE tblInvoice
+                    SET InvoiceState = N'Đã thanh toán'
+                    WHERE InvoiceID = ?
+                """, (id,))
+                conn.commit()
+
+                return jsonify({"paid": True})
+
+        return jsonify({"paid": False})
+
+    except Exception as e:
+        print("SEPAY ERROR:", e)
+        return jsonify({"paid": False})
 
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 587

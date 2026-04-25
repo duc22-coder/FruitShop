@@ -29,6 +29,7 @@ if (typeof mapboxgl !== 'undefined' && mapContainer) {
     map.scrollZoom.disable();
 
     map.on('load', () => {
+        map.scrollZoom.enable();
         geo.trigger();
         setRouteSource();
         setStoreLocation();
