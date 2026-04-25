@@ -9,14 +9,8 @@ DELETE FROM tblInvoice
 DELETE FROM tblProduct
 DELETE FROM tblAccount
 DELETE FROM tblToken
-<<<<<<< HEAD
 DELETE FROM tblCoupon
 DELETE FROM tblStore
-=======
-DELETE FROM tblStore
-DELETE FROM tblCoupon
-
->>>>>>> a33fc6f (xac nhan thanh toan)
 
 DBCC CHECKIDENT ('tblAccount', RESEED, 0);
 DBCC CHECKIDENT ('tblProduct', RESEED, 0);
@@ -24,14 +18,8 @@ DBCC CHECKIDENT ('tblInvoice', RESEED, 0);
 DBCC CHECKIDENT ('tblPayment', RESEED, 0);
 DBCC CHECKIDENT ('tblOrder', RESEED, 0);
 DBCC CHECKIDENT ('tblInvoiceDetail', RESEED, 0);
-<<<<<<< HEAD
 DBCC CHECKIDENT ('tblCoupon', RESEED, 0);
 DBCC CHECKIDENT ('tblStore', RESEED, 0);
-=======
-DBCC CHECKIDENT ('tblStore', RESEED, 0);
-DBCC CHECKIDENT ('tblCoupon', RESEED, 0);
-
->>>>>>> a33fc6f (xac nhan thanh toan)
 
 -- 1. tblAccount (bỏ AccountID)
 INSERT INTO tblAccount
