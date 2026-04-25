@@ -9,7 +9,8 @@ DELETE FROM tblInvoice
 DELETE FROM tblProduct
 DELETE FROM tblAccount
 DELETE FROM tblToken
-
+DELETE FROM tblCoupon
+DELETE FROM tblStore
 
 DBCC CHECKIDENT ('tblAccount', RESEED, 0);
 DBCC CHECKIDENT ('tblProduct', RESEED, 0);
@@ -17,17 +18,19 @@ DBCC CHECKIDENT ('tblInvoice', RESEED, 0);
 DBCC CHECKIDENT ('tblPayment', RESEED, 0);
 DBCC CHECKIDENT ('tblOrder', RESEED, 0);
 DBCC CHECKIDENT ('tblInvoiceDetail', RESEED, 0);
+DBCC CHECKIDENT ('tblCoupon', RESEED, 0);
+DBCC CHECKIDENT ('tblStore', RESEED, 0);
 
 -- 1. tblAccount (bỏ AccountID)
 INSERT INTO tblAccount
-    (UserName, Passwd, UserAddress, Phone, AccountRole)
+    (UserName, Passwd, UserAddress, Phone, AccountRole, UserEmail)
 VALUES
-    (N'Nguyễn Văn An', '123456', N'Hà Nội', '0900000001', 'USER'),
-    (N'Vũ Minh Hiếu', '123456', N'Hải Phòng', '0900000002', 'USER'),
-    (N'Hoàng Đức Trọng', '123456', N'Đà Nẵng', '0900000003', 'ADMIN'),
-    (N'Phùng Tuấn Đạt', '123456', N'TP. Hồ Chí Minh', '0900000004', 'USER'),
-    (N'Nguyễn Duy Minh', '123456', N'Cần Thơ', '0900000005', 'USER'),
-    (N'admin', '123456', 'Kim Lan', '0859376293', 'USER');
+    (N'Nguyễn Văn An', '123456', N'Hà Nội', '0900000001', 'USER', 'nguyenvanan@gmail.com'),
+    (N'Vũ Minh Hiếu', '123456', N'Hải Phòng', '0900000002', 'USER', 'vuminhhieu@gmail.com'),
+    (N'Hoàng Đức Trọng', '123456', N'Đà Nẵng', '0900000003', 'USER', 'hoangductrong280805@gmail.com'),
+    (N'Phùng Tuấn Đạt', '123456', N'TP. Hồ Chí Minh', '0900000004', 'USER', 'phungtuandat@gmail.com'),
+    (N'Nguyễn Duy Minh', '123456', N'Cần Thơ', '0900000005', 'USER', 'nguyenduyminh@gmail.com'),
+    (N'admin', '123456', 'Kim Lan', '0859376293', 'ADMIN', 'admin@fruitables.com');
 
 -- 2. tblProduct (bỏ ProductID)
 INSERT INTO tblProduct
@@ -119,7 +122,7 @@ VALUES
     ('GIAM20', 20, 100000, '2026-12-31', 50),
     -- Giảm 20%, tối đa 100k
     ('HETHAN', 50, 200000, '2020-01-01', 10);
--- Mã này đã hết hạn để test lỗi
+
 
 SELECT *
 FROM tblAccount
@@ -139,14 +142,5 @@ SELECT *
 FROM tblToken
 SELECT *
 FROM tblStore
-
-ALTER TABLE tblAccount ADD UserEmail NVARCHAR(255);
-GO
-
--- 2. Cập nhật email mẫu cho các tài khoản đang có để test
-UPDATE tblAccount SET UserEmail = 'nguyenvanan@gmail.com' WHERE UserName = N'Nguyễn Văn An';
-UPDATE tblAccount SET UserEmail = 'phungtuandat@gmail.com' WHERE UserName = N'Phùng Tuấn Đạt';
-UPDATE tblAccount SET UserEmail = 'admin@fruitables.com' WHERE UserName = 'admin';
-UPDATE tblAccount SET UserEmail = 'vuminhhieu@gmail.com' WHERE UserName = N'Vũ Minh Hiếu';
-UPDATE tblAccount SET UserEmail = 'hoangductrong280805@gmail.com' WHERE UserName = N'Hoàng Đức Trọng';
-UPDATE tblAccount SET UserEmail = 'nguyenduyminh@gmail.com' WHERE UserName = N'Nguyễn Duy Minh';
+SELECT *
+FROM tblCoupon

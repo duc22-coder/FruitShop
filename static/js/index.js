@@ -152,6 +152,15 @@ function loadBestSellers() {
     });
 }
 
+$(document).ready(function () {
+
+    const userRole = localStorage.getItem("userRole");
+    if (userRole === "ADMIN") {
+        $("#admin-management-btn").show();
+    } else {
+        $("#admin-management-btn").hide();
+    }
+});
 // 6. Chạy tự động lúc mới vào web
 $(document).ready(function () {
     // Mình vẫn giữ lại loadProducts() phòng khi bạn chưa xóa HTML phần Our Organic Products

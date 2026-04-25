@@ -128,6 +128,10 @@ function validateLogin() {
                     ${res.name}
                 </span>`
                 );
+                if (res.role) {
+                    localStorage.setItem("userRole", res.role);
+                    checkAdmin();
+                }
             },
             error: function (e) {
                 alert("get info failed");
@@ -216,26 +220,35 @@ $('#btn-subscribe').on('click', function () {
         }
     });
 });
-$(document).ready(function() {
+$(document).ready(function () {
     const token = localStorage.getItem("token");
     if (token) {
         fetch("http://127.0.0.1:5000/account/getInfor", {
             headers: { "Authorization": `Bearer ${token}` }
         })
-        .then(res => res.json())
-        .then(user => {
-            // Nếu có email trong DB thì thay chữ mặc định bằng email thật
-            if (user.email) {
-                // Bạn tìm trong HTML chỗ Email@Example.com, thêm id="topbar-email" vào đó nhé
-                const emailEl = document.getElementById('topbar-email');
-                if (emailEl) {
-                    emailEl.innerText = user.email;
+            .then(res => res.json())
+            .then(user => {
+                // Nếu có email trong DB thì thay chữ mặc định bằng email thật
+                if (user.email) {
+                    // Bạn tìm trong HTML chỗ Email@Example.com, thêm id="topbar-email" vào đó nhé
+                    const emailEl = document.getElementById('topbar-email');
+                    if (emailEl) {
+                        emailEl.innerText = user.email;
+                    }
                 }
-            }
-            
-        });
+
+            });
     }
 });
+function checkAdmin() {
+    const role = localStorage.getItem("userRole");
+    if (role === "ADMIN") {
+        $("#admin-management-btn").attr("style", "display: block !important");
+    } else {
+        $("#admin-management-btn").hide();
+    }
+}
+document.addEventListener("DOMContentLoaded", checkAdmin);
 // 3. Khởi tạo
 $(document).ready(function () {
     // loadProducts();

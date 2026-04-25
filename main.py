@@ -10,7 +10,7 @@ from flask_mail import Mail, Message
 app = Flask(__name__)
 CORS(app, supports_credentials=True)
 
-cn_str = 'DRIVER={ODBC Driver 17 for SQL Server};SERVER=LAPTOP-C8E5HODE;DATABASE=Fruitables;Trusted_Connection=yes; MARS_Connection=yes'
+cn_str = 'DRIVER={ODBC Driver 17 for SQL Server};SERVER=ADMIN-PC;DATABASE=Fruitables;Trusted_Connection=yes; MARS_Connection=yes'
 conn = pyodbc.connect(cn_str, autocommit=True)
 tokens = {}  # Lưu trữ token và AccountID tương ứng
 
@@ -94,11 +94,11 @@ def login_api():
     data = request.get_json(force=True)
     username = data.get("username")
     password = data.get("password")
-
+    
     #kiểm tra xem tài khoản mật khẩu có đúng không
     with conn.cursor() as cursor:
         cursor.execute(
-            "SELECT AccountID, UserName FROM tblAccount WHERE UserName = ? AND Passwd = ?",
+            "SELECT AccountID, UserName, AccountRole FROM tblAccount WHERE UserName = ? AND Passwd = ?",
             (username, password)
         )
         row = cursor.fetchone()
@@ -109,7 +109,8 @@ def login_api():
 
     token = secrets.token_hex(32)
     accountID = row[0]
-
+    role = row[2]
+    
     # cập nhật token nếu tài khoản đang đăng nhập, nếu chưa thì thêm token hiện tại vào.
     with conn.cursor() as cursor:
         cursor.execute(
@@ -128,7 +129,8 @@ def login_api():
         "message": "login success",
         "token": token,
         "accountID": row[0],
-        "user": row[1]
+        "user": row[1],
+        "role": role
     })
 
 # đăng xuất
@@ -441,5 +443,9 @@ def subscribe():
         # In ra log không dấu để tránh crash terminal Windows
         print(f"Mail System Error: {str(e)}") 
         return jsonify({"error": "He thong mail dang bao tri, thu lai sau!"}), 500
+    
+@app.route("/manage")
+def manage_page():
+    return render_template("manage.html")
 if __name__ == "__main__":
     app.run(port=5000, debug=True)
